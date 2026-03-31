@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema de Estudos ✦</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+:root{
+  --bg:#060b18;--surface:#0d1420;--surface2:#0a1020;--border:#1a2640;--border2:#283550;
+  --text:#e2e8f0;--muted:#64748b;--muted2:#475569;
+  --blue:#3b82f6;--purple:#a855f7;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--pink:#f43f5e;
+  --blue-dim:#1a2e4f;--purple-dim:#2e1650;--green-dim:#052e22;--amber-dim:#3a1500;
+  --streak-color:#fb923c;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:242px;background:linear-gradient(180deg,#06091a,#080c1c);height:100vh;border-right:1px solid var(--border);position:sticky;top:0;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-inner{display:flex;flex-direction:column;gap:4px;padding:12px 11px;height:100%;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1a2640 transparent;}
+.sidebar-logo{text-align:center;padding:3px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px;}
+.sidebar-logo span{font-size:.88rem;font-weight:800;color:#60a5fa;letter-spacing:1px;}
+
+/* Profile */
+.profile-bar{background:linear-gradient(135deg,#0d1a30,#111d35);border:1px solid var(--border);border-radius:11px;padding:9px 11px;display:flex;align-items:center;gap:9px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff;flex-shrink:0;cursor:pointer;border:2px solid #3b82f630;transition:.2s;user-select:none;}
+.avatar:hover{border-color:#60a5fa;}
+.profile-info{flex:1;min-width:0;}
+.profile-name{font-size:.8rem;font-weight:700;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.profile-name:hover{color:#60a5fa;}
+.profile-name-input{background:none;border:none;border-bottom:1px dashed #3b82f6;color:#e2e8f0;font-size:.8rem;font-weight:700;outline:none;width:100%;padding:1px 0;}
+.profile-title{font-size:.6rem;color:var(--muted2);margin-top:1px;}
+
+/* Gamebar */
+.gamebar{background:linear-gradient(135deg,#0d1a30,#111d35);border:1px solid var(--border);border-radius:11px;padding:9px 11px;}
+.gamebar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.streak-badge{display:flex;align-items:center;gap:4px;font-size:.76rem;font-weight:800;color:var(--streak-color);}
+.level-badge{font-size:.63rem;font-weight:700;color:#60a5fa;background:#1a2e4f;padding:2px 7px;border-radius:20px;border:1px solid #3b82f630;}
+.xp-bar-wrap{background:#0a1020;border-radius:20px;height:7px;overflow:hidden;}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:20px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.xp-label{font-size:.58rem;color:var(--muted);margin-top:3px;text-align:right;}
+
+/* Nav */
+nav{display:flex;flex-direction:column;gap:3px;}
+.nav-btn{width:100%;padding:8px 10px;background:#0d1520;border:1px solid var(--border);color:#94a3b8;border-radius:8px;cursor:pointer;transition:.2s;font-weight:600;text-align:left;display:flex;align-items:center;gap:7px;font-size:.8rem;}
+.nav-btn:hover{background:var(--border);color:var(--text);}
+.nav-btn.active{background:var(--border);border-color:#60a5fa;color:#60a5fa;box-shadow:inset 0 0 12px rgba(96,165,250,.15);}
+
+/* Frase */
+.frase-box{background:linear-gradient(135deg,#0d1a2d,#0a1628);border:1px solid var(--blue-dim);border-radius:9px;padding:9px;}
+.frase-label{font-size:.56rem;text-transform:uppercase;letter-spacing:2px;color:#1e3a5f;margin-bottom:4px;}
+.frase-text{font-size:.67rem;color:#93c5fd;line-height:1.5;font-style:italic;}
+.frase-author{font-size:.57rem;color:var(--border2);margin-top:3px;text-align:right;}
+.frase-refresh{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.6rem;margin-top:3px;display:block;width:100%;text-align:right;transition:.2s;}
+.frase-refresh:hover{color:#60a5fa;}
+
+/* ── YOUTUBE FLUTUANTE ── */
+.yt-float{
+  position:fixed;
+  bottom:18px;
+  left:258px;
+  z-index:1500;
+  width:270px;
+  background:linear-gradient(135deg,#08101e,#0a1220);
+  border:1px solid var(--border2);
+  border-radius:13px;
+  overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.7);
+  transition:all .3s ease;
+}
+.yt-float.collapsed .yt-float-body{max-height:0;overflow:hidden;}
+.yt-float-header{
+  background:linear-gradient(90deg,#1a0000,#2a0a0a);
+  padding:7px 10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  user-select:none;
+  border-bottom:1px solid #ff000022;
+}
+.yt-float-title{font-size:.7rem;font-weight:800;color:#ff6b6b;display:flex;align-items:center;gap:6px;}
+.yt-float-title::before{content:'▶';font-size:.6rem;background:#ff0000;color:#fff;padding:2px 5px;border-radius:4px;}
+.yt-float-toggle{background:none;border:none;cursor:pointer;color:#ff6b6b;font-size:.75rem;padding:2px 5px;border-radius:4px;transition:.2s;}
+.yt-float-toggle:hover{background:#ff000022;}
+.yt-float-body{max-height:400px;transition:max-height .3s ease;overflow:hidden;}
+
+/* Search bar */
+.yt-search-area{padding:8px 9px 5px;}
+.yt-search-row{display:flex;gap:5px;margin-bottom:5px;}
+.yt-search-input{flex:1;background:#0a1520;border:1px solid var(--border2);color:var(--text);padding:6px 9px;border-radius:7px;font-size:.68rem;outline:none;transition:border .2s;}
+.yt-search-input:focus{border-color:#ff0000;}
+.yt-search-btn{background:#ff0000;border:none;color:#fff;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:.68rem;font-weight:700;white-space:nowrap;transition:.2s;}
+.yt-search-btn:hover{background:#cc0000;}
+.yt-url-row{display:flex;gap:5px;}
+.yt-url-input{flex:1;background:#0a1520;border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:6px;font-size:.6rem;outline:none;}
+.yt-url-input:focus{border-color:#ff0000;}
+.yt-load-btn{background:#333;border:1px solid var(--border2);color:#ccc;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:.6rem;font-weight:700;}
+.yt-load-btn:hover{background:#555;color:#fff;}
+
+/* Search results */
+.yt-results{max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1a2640 transparent;padding:0 7px 5px;}
+.yt-result-item{display:flex;gap:7px;padding:5px;border-radius:7px;cursor:pointer;transition:.15s;border:1px solid transparent;margin-bottom:3px;}
+.yt-result-item:hover{background:#1a2640;border-color:#283550;}
+.yt-result-thumb{width:56px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0;background:#0a1520;}
+.yt-result-info{flex:1;min-width:0;}
+.yt-result-title{font-size:.62rem;color:#e2e8f0;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3;}
+.yt-result-ch{font-size:.54rem;color:var(--muted2);margin-top:2px;}
+.yt-no-results{font-size:.65rem;color:var(--muted);text-align:center;padding:10px 0;}
+.yt-searching{font-size:.62rem;color:#60a5fa;text-align:center;padding:8px 0;display:flex;align-items:center;justify-content:center;gap:5px;}
+.yt-spinner{width:10px;height:10px;border:2px solid #1a2640;border-top-color:#60a5fa;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Player */
+#ytPlayerDiv{width:100%;}
+.yt-player-wrap{padding:0 7px 5px;}
+.yt-controls{display:none;justify-content:center;gap:5px;padding:4px 7px;}
+.yt-controls.visible{display:flex;}
+.yt-ctrl-btn{background:var(--border);border:1px solid var(--border2);color:#94a3b8;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:.64rem;font-weight:700;transition:.2s;}
+.yt-ctrl-btn:hover{border-color:#ff0000;color:#fca5a5;}
+.yt-now-playing{font-size:.56rem;color:var(--muted2);padding:0 9px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── CONTENT ── */
+.content{flex:1;padding:20px 24px;overflow-y:auto;height:100vh;padding-bottom:100px;}
+.hidden{display:none!important;}
+.page-header{text-align:center;margin-bottom:18px;}
+.page-header h1{font-size:1.55rem;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;}
+.page-header p{color:var(--muted);font-size:.8rem;}
+
+/* Suggestion */
+.suggestion-box{background:linear-gradient(135deg,#1a1000,#1c1400);border:1px solid #92400e55;border-radius:11px;padding:11px 15px;margin-bottom:16px;max-width:1200px;margin-left:auto;margin-right:auto;display:flex;align-items:flex-start;gap:9px;}
+.suggestion-box.hidden-box{display:none;}
+.sug-icon{font-size:1.2rem;flex-shrink:0;}
+.sug-content{flex:1;}
+.sug-title{font-size:.7rem;font-weight:800;color:#fcd34d;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;}
+.sug-text{font-size:.77rem;color:#fde68a;line-height:1.5;}
+.sug-dismiss{background:none;border:1px solid #92400e55;color:#92400e;padding:2px 9px;border-radius:5px;cursor:pointer;font-size:.6rem;margin-top:5px;transition:.2s;}
+.sug-dismiss:hover{border-color:#f59e0b;color:#f59e0b;}
+
+/* ── CRONOGRAMA ── */
+.legend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:.7rem;color:#94a3b8;background:var(--border);padding:3px 8px;border-radius:20px;}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sched-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:10px;max-width:1200px;margin:0 auto;}
+.day-card{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:box-shadow .2s;}
+.day-card:hover{box-shadow:0 4px 24px rgba(0,0,0,.5);}
+.day-header{padding:9px 13px;font-weight:700;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;color:#fff;}
+.day-add-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;cursor:pointer;font-size:.72rem;font-weight:700;padding:2px 7px;transition:.2s;}
+.day-add-btn:hover{background:rgba(255,255,255,.3);}
+.seg .day-header{background:linear-gradient(90deg,#1d4ed8,#1e40af);}
+.ter .day-header{background:linear-gradient(90deg,#7c3aed,#6d28d9);}
+.qua .day-header{background:linear-gradient(90deg,#0f766e,#0d6b62);}
+.qui .day-header{background:linear-gradient(90deg,#b45309,#92400e);}
+.sex .day-header{background:linear-gradient(90deg,#be123c,#9f1239);}
+.sab .day-header{background:linear-gradient(90deg,#334155,#1e293b);}
+.dom .day-header{background:linear-gradient(90deg,#0e7490,#0c677f);}
+.items-list{min-height:32px;}
+.sched-item{padding:7px 12px;border-top:1px solid var(--surface2);display:flex;align-items:center;gap:7px;cursor:grab;user-select:none;transition:background .15s;}
+.sched-item:active{cursor:grabbing;}
+.sched-item:hover{background:#ffffff08;}
+.sched-item.sortable-ghost{opacity:.3;background:#60a5fa22;}
+.sched-item.sortable-chosen{background:#60a5fa11;box-shadow:inset 3px 0 0 #60a5fa;}
+.drag-handle{color:var(--border2);font-size:.72rem;cursor:grab;flex-shrink:0;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.item-text{flex:1;}
+.item-title{font-size:.8rem;font-weight:600;color:#f1f5f9;}
+.item-sub{font-size:.68rem;color:var(--muted2);margin-top:1px;}
+.badge{font-size:.61rem;padding:2px 6px;border-radius:20px;font-weight:700;white-space:nowrap;}
+.c-bb{background:#3b82f6}.c-idiom{background:#a855f7}.c-facul{background:#10b981}.c-math{background:#f59e0b}.c-custom{background:#64748b}
+.b-bb{background:var(--blue-dim);color:#93c5fd}.b-idiom{background:var(--purple-dim);color:#d8b4fe}.b-facul{background:var(--green-dim);color:#6ee7b7}.b-math{background:var(--amber-dim);color:#fcd34d}.b-april{background:#1a2e1a;color:#86efac;font-style:italic}.b-custom{background:#1e293b;color:#94a3b8}
+.sched-reset{display:block;margin:13px auto 0;background:none;border:1px solid var(--border2);color:var(--muted);padding:6px 15px;border-radius:7px;cursor:pointer;font-size:.72rem;transition:.2s;}
+.sched-reset:hover{border-color:var(--red);color:var(--red);}
+
+/* ── CONTEXT MENU ── */
+.ctx-menu{position:fixed;background:#0d1520;border:1px solid var(--border2);border-radius:10px;padding:5px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.7);min-width:155px;animation:ctxIn .12s ease;}
+@keyframes ctxIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.ctx-title{padding:6px 13px 3px;font-size:.7rem;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px;}
+.ctx-sep{height:1px;background:var(--border);margin:3px 0;}
+.ctx-item{padding:8px 13px;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px;transition:.15s;}
+.ctx-item.danger{color:#f87171;}
+.ctx-item.danger:hover{background:#4c051930;}
+
+/* ── TRACKER ── */
+.tracker-wrap{max-width:1100px;margin:auto;background:var(--surface);padding:20px;border-radius:13px;border:1px solid var(--border);}
+.tracker-top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:9px;}
+.week-controls{display:flex;align-items:center;gap:11px;}
+.week-select{background:var(--border);color:#60a5fa;border:1px solid #60a5fa;padding:6px 14px;border-radius:7px;font-weight:700;font-size:.9rem;}
+.btn-add-materia{background:linear-gradient(135deg,#34d399,#10b981);color:#064e3b;border:none;padding:7px 13px;border-radius:7px;font-weight:800;cursor:pointer;font-size:.76rem;}
+table.tracker-table{width:100%;border-collapse:collapse;}
+table.tracker-table th{text-align:left;padding:8px;color:var(--muted);font-size:.7rem;text-transform:uppercase;border-bottom:1px solid var(--border);}
+table.tracker-table td{padding:7px 8px;border-top:1px solid var(--border);vertical-align:top;}
+.aula-block{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px;margin-bottom:5px;}
+.aula-header{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.aula-num{font-size:.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);white-space:nowrap;min-width:40px;}
+.aula-chk{accent-color:#60a5fa;transform:scale(1.2);cursor:pointer;flex-shrink:0;}
+.aula-input{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:5px;font-size:.78rem;outline:none;transition:border .2s;}
+.aula-input:focus{border-color:#60a5fa;}
+.aula-rm{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.72rem;flex-shrink:0;padding:2px 4px;transition:.2s;}
+.aula-rm:hover{color:var(--red);}
+.aula-rev{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-left:2px;}
+.aula-rev label{display:flex;align-items:center;gap:4px;font-size:.67rem;color:#94a3b8;font-weight:700;cursor:pointer;}
+.aula-rev input[type=checkbox]{accent-color:#a78bfa;transform:scale(1.1);}
+.btn-add-aula{background:none;border:1px dashed var(--border2);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:.68rem;transition:.2s;width:100%;text-align:center;margin-top:2px;}
+.btn-add-aula:hover{border-color:#60a5fa;color:#60a5fa;}
+.mat-name-cell{display:flex;align-items:center;gap:5px;}
+.btn-rm-mat{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.72rem;opacity:0;transition:.2s;}
+tr:hover .btn-rm-mat{opacity:1;}
+.btn-rm-mat:hover{color:var(--red);}
+.btn-save{background:linear-gradient(135deg,#34d399,#10b981);color:#064e3b;border:none;padding:10px 24px;border-radius:7px;font-weight:800;cursor:pointer;margin-top:14px;float:right;}
+.save-msg{display:inline-block;margin-top:17px;font-size:.76rem;color:#34d399;opacity:0;transition:opacity .4s;}
+.save-msg.show{opacity:1;}
+.clearfix{overflow:hidden;}
+
+/* ── FLASH ANIMATIONS ── */
+.xp-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#422006;padding:11px 26px;border-radius:50px;font-weight:800;font-size:1.15rem;z-index:9999;pointer-events:none;animation:xpFlash .9s ease forwards;}
+@keyframes xpFlash{0%{opacity:0;transform:translate(-50%,-60%) scale(.7)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-40%) scale(.9)}}
+.levelup-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:16px 34px;border-radius:15px;font-weight:800;font-size:1.3rem;z-index:10000;text-align:center;pointer-events:none;box-shadow:0 0 60px #a855f755;animation:lvlFlash 1.5s ease forwards;}
+@keyframes lvlFlash{0%{opacity:0;transform:translate(-50%,-60%) scale(.6)}25%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-40%) scale(.95)}}
+
+/* ── IDIOMAS ── */
+.lab-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;max-width:1200px;margin:0 auto;}
+.lab-grid-full{grid-column:1/-1;}
+.kanji-card{background:linear-gradient(135deg,#0d1117,var(--surface));border:1px solid #292524;border-radius:15px;padding:20px;text-align:center;position:relative;overflow:hidden;}
+.kanji-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#7c3aed18,transparent 65%);pointer-events:none;}
+.kanji-badge{display:inline-block;font-size:.61rem;text-transform:uppercase;letter-spacing:3px;color:#7c3aed;background:#7c3aed18;padding:3px 13px;border-radius:20px;margin-bottom:10px;border:1px solid #7c3aed33;}
+.kanji-symbol{font-family:'Noto Sans JP',serif;font-size:5rem;line-height:1;color:#f1f5f9;margin:6px 0;text-shadow:0 0 40px #7c3aed55;}
+.kanji-info{display:flex;justify-content:center;gap:26px;margin-top:12px;flex-wrap:wrap;}
+.kanji-item label{font-size:.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted2);display:block;margin-bottom:3px;}
+.kanji-item .val{font-size:.9rem;font-weight:700;color:#a78bfa;font-family:'Noto Sans JP',serif;}
+.kanji-item .roma{font-size:.74rem;color:var(--muted);font-style:italic;margin-top:2px;}
+.kanji-counter{font-size:.65rem;color:var(--muted);margin-top:6px;}
+.kanji-nav{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.kanji-nav button{background:var(--border);border:1px solid var(--border2);color:#94a3b8;padding:5px 15px;border-radius:7px;cursor:pointer;font-size:.75rem;transition:.2s;}
+.kanji-nav button:hover{border-color:#7c3aed;color:#a78bfa;}
+.kanji-add-btn{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:5px 15px;border-radius:7px;cursor:pointer;font-size:.75rem;font-weight:700;}
+.kana-section{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;}
+.kana-section h3{font-size:.74rem;text-transform:uppercase;letter-spacing:2px;color:#60a5fa;margin-bottom:4px;}
+.kana-toggle{display:flex;gap:5px;margin-bottom:11px;}
+.kana-toggle-btn{background:var(--surface2);border:1px solid var(--border2);color:var(--muted);padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700;transition:.2s;}
+.kana-toggle-btn.active{background:var(--blue-dim);border-color:#60a5fa;color:#60a5fa;}
+.kana-table{width:100%;border-collapse:collapse;font-size:.74rem;}
+.kana-table th{background:#0d1520;color:var(--muted2);padding:4px 2px;font-size:.6rem;text-align:center;}
+.kana-table td{text-align:center;padding:4px 2px;border:1px solid #0d1520;transition:background .15s;cursor:pointer;border-radius:4px;}
+.kana-table td:hover{background:#60a5fa22;border-color:#60a5fa55;}
+.kana-table td.playing{background:#60a5fa33;border-color:#60a5fa;animation:kanaPulse .4s ease;}
+@keyframes kanaPulse{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.kana-char{font-family:'Noto Sans JP','Noto Sans KR',serif;font-size:1rem;display:block;color:#f1f5f9;}
+.kana-roma{font-size:.56rem;color:var(--muted2);}
+.kana-empty{color:var(--border);cursor:default!important;}
+.kana-empty:hover{background:transparent!important;border-color:#0d1520!important;}
+
+/* ── FORMADOR DE PALAVRAS JP ── */
+.jp-translator{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-top:0;}
+.jp-translator h3{font-size:.74rem;text-transform:uppercase;letter-spacing:2px;color:#7c3aed;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.jp-translator h3 span{font-size:.6rem;background:#7c3aed22;border:1px solid #7c3aed44;padding:2px 7px;border-radius:10px;color:#a78bfa;text-transform:none;letter-spacing:0;}
+.jp-trans-row{display:flex;gap:7px;margin-bottom:9px;align-items:stretch;}
+.jp-trans-dir{display:flex;gap:5px;margin-bottom:8px;}
+.jp-trans-dir-btn{flex:1;padding:6px;border-radius:7px;border:1px solid var(--border2);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:.68rem;font-weight:700;transition:.2s;text-align:center;}
+.jp-trans-dir-btn.active{background:var(--purple-dim);border-color:#7c3aed;color:#a78bfa;}
+.jp-trans-input{flex:1;background:#0a1020;border:1px solid var(--border2);color:var(--text);padding:9px 12px;border-radius:8px;font-size:.9rem;outline:none;font-family:'Noto Sans JP','Segoe UI',sans-serif;transition:border .2s;}
+.jp-trans-input:focus{border-color:#7c3aed;}
+.jp-trans-btn{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:800;white-space:nowrap;transition:.2s;}
+.jp-trans-btn:hover{opacity:.85;}
+.jp-trans-btn:disabled{opacity:.4;cursor:not-allowed;}
+.jp-trans-result{background:#0a1020;border:1px solid var(--border2);border-radius:9px;padding:11px 13px;min-height:52px;position:relative;}
+.jp-trans-result-text{font-size:.9rem;color:#a78bfa;font-family:'Noto Sans JP','Segoe UI',sans-serif;line-height:1.6;word-break:break-word;}
+.jp-trans-result-text.loading{color:var(--muted);font-size:.75rem;display:flex;align-items:center;gap:7px;}
+.jp-trans-result-text.loading::before{content:'';display:inline-block;width:10px;height:10px;border:2px solid #283550;border-top-color:#7c3aed;border-radius:50%;animation:spin .7s linear infinite;}
+.jp-trans-speak{position:absolute;right:8px;top:8px;background:none;border:1px solid var(--border2);color:var(--muted);padding:3px 8px;border-radius:5px;cursor:pointer;font-size:.62rem;transition:.2s;}
+.jp-trans-speak:hover{border-color:#7c3aed;color:#a78bfa;}
+.jp-trans-examples{margin-top:7px;}
+.jp-trans-example{font-size:.65rem;color:var(--muted2);border-top:1px solid var(--border);padding-top:5px;margin-top:5px;line-height:1.5;}
+
+/* ── HANGUL COMPLETO ── */
+.hangul-lab{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;}
+.hangul-lab-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.hangul-lab-header h3{font-size:.74rem;text-transform:uppercase;letter-spacing:2px;color:#f43f5e;}
+.hangul-add-btn{background:linear-gradient(135deg,#f43f5e,#e11d48);border:none;color:#fff;padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;}
+.hangul-add-btn:hover{opacity:.85;}
+.hangul-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.hangul-section-label{font-size:.62rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);display:block;margin-bottom:6px;}
+.hangul-keys{display:flex;flex-wrap:wrap;gap:4px;min-height:28px;}
+.hangul-key{font-family:'Noto Sans KR',serif;padding:4px 5px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;cursor:pointer;transition:.2s;color:#f1f5f9;display:flex;flex-direction:column;align-items:center;min-width:36px;user-select:none;}
+.hangul-key .hk-main{font-size:1rem;line-height:1;}
+.hangul-key .hk-rom{font-size:.46rem;color:var(--muted);line-height:1;margin-top:1px;font-family:'Segoe UI',sans-serif;}
+.hangul-key:hover{border-color:#f43f5e;background:#4c0519;color:#fda4af;}
+.hangul-key.selected{background:#4c0519;border-color:#f43f5e;color:#fda4af;box-shadow:0 0 10px #f43f5e33;}
+.hangul-result{text-align:center;padding:13px;background:linear-gradient(135deg,#1a0008,#0d1520);border:1px solid #f43f5e33;border-radius:11px;position:relative;overflow:hidden;margin-top:9px;}
+.hangul-result::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#f43f5e18,transparent 65%);}
+.hangul-syllable{font-family:'Noto Sans KR',serif;font-size:4rem;color:#f1f5f9;text-shadow:0 0 30px #f43f5e55;line-height:1;position:relative;z-index:1;}
+.hangul-combo-label{font-size:.63rem;color:var(--muted2);margin-top:6px;letter-spacing:1px;text-transform:uppercase;position:relative;z-index:1;}
+.hangul-actions{display:flex;gap:7px;justify-content:center;margin-top:8px;position:relative;z-index:1;flex-wrap:wrap;}
+.hangul-clear{background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.7rem;transition:.2s;}
+.hangul-clear:hover{border-color:#f43f5e;color:#f43f5e;}
+.hangul-speak{background:linear-gradient(135deg,#f43f5e,#e11d48);border:none;color:#fff;padding:4px 13px;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;}
+.hangul-speak:disabled{opacity:.35;cursor:not-allowed;}
+.speech-status{font-size:.58rem;color:var(--muted2);margin-top:4px;position:relative;z-index:1;}
+.hangul-test-panel{margin-top:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:9px;position:relative;z-index:1;}
+.hangul-test-panel label{font-size:.61rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px;}
+.hangul-test-row{display:flex;gap:5px;}
+.hangul-test-input{flex:1;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:6px;font-size:.85rem;outline:none;font-family:'Noto Sans KR',serif;}
+.hangul-test-input:focus{border-color:#f43f5e;}
+.hangul-test-speak{background:linear-gradient(135deg,#f43f5e,#e11d48);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.7rem;font-weight:700;}
+.hangul-test-preview{font-family:'Noto Sans KR',serif;font-size:2rem;color:#fda4af;text-align:center;margin-top:6px;min-height:38px;text-shadow:0 0 20px #f43f5e55;}
+
+/* ── CALENDAR ── */
+.calendar-wrap{max-width:1100px;margin:0 auto;}
+.cal-nav{display:flex;justify-content:center;align-items:center;gap:16px;margin-bottom:18px;}
+.cal-nav button{background:var(--border);border:1px solid var(--border2);color:#94a3b8;padding:6px 16px;border-radius:7px;cursor:pointer;font-size:.8rem;font-weight:700;transition:.2s;}
+.cal-nav button:hover{border-color:#60a5fa;color:#60a5fa;}
+.cal-month-title{font-size:1.15rem;font-weight:800;color:#e2e8f0;min-width:210px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.cal-dayname{text-align:center;font-size:.66rem;color:var(--muted2);font-weight:700;text-transform:uppercase;padding:5px 0;}
+.cal-cell{min-height:110px;border-radius:10px;display:flex;flex-direction:column;align-items:stretch;font-size:.8rem;font-weight:600;background:var(--surface);border:1px solid var(--border);transition:.2s;overflow:hidden;cursor:default;}
+.cal-cell.empty{background:transparent;border-color:transparent;}
+.cal-cell-num{padding:5px 7px;font-size:.78rem;font-weight:700;color:#94a3b8;text-align:right;}
+.cal-cell.today .cal-cell-num{color:#60a5fa;}
+.cal-cell.today{border-color:#60a5fa;box-shadow:0 0 10px #60a5fa22;}
+.cal-cell.studied{background:linear-gradient(160deg,#052e22,#062e24);border-color:#10b981;}
+.cal-cell.studied .cal-cell-num{color:#34d399;}
+.cal-cell.streak-day{background:linear-gradient(160deg,#3a1000,#451400);border-color:#f59e0b;}
+.cal-cell.streak-day .cal-cell-num{color:#fcd34d;}
+.cal-items{padding:2px 4px 4px;display:flex;flex-direction:column;gap:2px;flex:1;overflow:hidden;}
+.cal-item-chip{font-size:.48rem;background:#1a2640;color:#94a3b8;border-radius:3px;padding:1px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5;}
+.cal-item-chip.chip-bb{background:#1a2e4f;color:#93c5fd;}
+.cal-item-chip.chip-idiom{background:#2e1650;color:#d8b4fe;}
+.cal-item-chip.chip-facul{background:#052e22;color:#6ee7b7;}
+.cal-item-chip.chip-math{background:#3a1500;color:#fcd34d;}
+.cal-item-chip.chip-custom{background:#1e293b;color:#94a3b8;}
+.cal-legend{display:flex;gap:12px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:6px;font-size:.71rem;color:#94a3b8;}
+.cal-legend-dot{width:11px;height:11px;border-radius:3px;}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:#000000cc;z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-box{background:#0d1520;border:1px solid var(--border2);border-radius:14px;padding:24px;width:350px;max-width:90vw;max-height:90vh;overflow-y:auto;}
+.modal-box h3{font-size:.95rem;font-weight:800;color:#a78bfa;margin-bottom:14px;text-align:center;}
+.modal-field{margin-bottom:10px;}
+.modal-field label{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px;}
+.modal-field input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:7px;font-size:.86rem;outline:none;transition:border .2s;font-family:'Noto Sans JP',sans-serif;}
+.modal-field input:focus{border-color:#7c3aed;}
+.modal-actions{display:flex;gap:8px;margin-top:14px;}
+.modal-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:9px;border-radius:7px;cursor:pointer;font-weight:700;}
+.modal-save{flex:2;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;color:#fff;padding:9px;border-radius:7px;cursor:pointer;font-weight:800;}
+.gen-modal-overlay{position:fixed;inset:0;background:#000000cc;z-index:3000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.gen-modal-box{background:#0d1520;border:1px solid var(--border2);border-radius:14px;padding:24px;width:370px;max-width:90vw;}
+.gen-modal-box h3{font-size:.95rem;font-weight:800;color:#60a5fa;margin-bottom:14px;text-align:center;}
+.gen-modal-box label{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px;margin-top:10px;}
+.gen-modal-box input,.gen-modal-box select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:7px;font-size:.86rem;outline:none;}
+.gen-modal-box input:focus,.gen-modal-box select:focus{border-color:#60a5fa;}
+.gen-modal-actions{display:flex;gap:8px;margin-top:14px;}
+.gen-modal-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:9px;border-radius:7px;cursor:pointer;font-weight:700;}
+.gen-modal-save{flex:2;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;color:#fff;padding:9px;border-radius:7px;cursor:pointer;font-weight:800;}
+.hg-modal-overlay{position:fixed;inset:0;background:#000000cc;z-index:4000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.hg-modal-box{background:#0d1520;border:1px solid #f43f5e55;border-radius:14px;padding:24px;width:340px;max-width:90vw;}
+.hg-modal-box h3{font-size:.95rem;font-weight:800;color:#f43f5e;margin-bottom:14px;text-align:center;}
+.hg-modal-box label{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:4px;margin-top:10px;}
+.hg-modal-box input{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:7px;font-size:1rem;outline:none;font-family:'Noto Sans KR',serif;}
+.hg-modal-box input:focus{border-color:#f43f5e;}
+.hg-modal-box select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:8px 10px;border-radius:7px;font-size:.85rem;outline:none;}
+.hg-modal-actions{display:flex;gap:8px;margin-top:14px;}
+.hg-modal-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:9px;border-radius:7px;cursor:pointer;font-weight:700;}
+.hg-modal-save{flex:2;background:linear-gradient(135deg,#f43f5e,#e11d48);border:none;color:#fff;padding:9px;border-radius:7px;cursor:pointer;font-weight:800;}
+
+/* ── STICKY ── */
+.sticky{position:fixed;bottom:18px;right:18px;z-index:1000;width:225px;}
+.sticky-header{background:linear-gradient(135deg,#facc15,#eab308);padding:6px 10px;border-radius:9px 9px 0 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;}
+.sticky-header span{font-size:.7rem;font-weight:800;color:#422006;}
+.sticky-toggle{background:none;border:none;cursor:pointer;color:#78350f;font-size:.78rem;}
+.sticky-body{background:#fef08a;border-radius:0 0 9px 9px;box-shadow:4px 6px 20px rgba(0,0,0,.5);overflow:hidden;transition:max-height .3s ease;max-height:290px;}
+.sticky-body.collapsed{max-height:0;}
+.sticky-textarea{width:100%;min-height:140px;resize:vertical;background:transparent;border:none;outline:none;padding:8px 10px;font-size:.76rem;color:#422006;font-family:'Segoe UI',sans-serif;line-height:1.5;}
+.sticky-footer{background:#fde047;padding:3px 8px 4px;display:flex;justify-content:space-between;align-items:center;}
+.sticky-saved{font-size:.56rem;color:#92400e;opacity:0;transition:opacity .4s;}
+.sticky-saved.show{opacity:1;}
+.sticky-clear{background:none;border:none;font-size:.56rem;color:#92400e;cursor:pointer;opacity:.6;}
+.sticky-clear:hover{opacity:1;}
+
+/* API Key notice */
+.api-notice{background:linear-gradient(135deg,#1a1a00,#1c1800);border:1px solid #92400e55;border-radius:8px;padding:8px 10px;margin-top:7px;font-size:.61rem;color:#fde68a;line-height:1.5;}
+.api-notice a{color:#fbbf24;text-decoration:underline;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+<div class="sidebar-inner">
+  <div class="sidebar-logo"><span>📚 ESTUDOS</span></div>
+
+  <div class="profile-bar">
+    <div class="avatar" id="avatarEl" onclick="editName()">B</div>
+    <div class="profile-info">
+      <div class="profile-name" id="profileNameDisplay" onclick="editName()">B</div>
+      <div class="profile-title">Estudante Elite ✦</div>
+    </div>
+  </div>
+
+  <div class="gamebar">
+    <div class="gamebar-top">
+      <div class="streak-badge"><span>🔥</span><span id="streakCount">0</span> dias</div>
+      <div class="level-badge" id="levelBadge">Nível 1</div>
+    </div>
+    <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+    <div class="xp-label" id="xpLabel">0 / 100 XP</div>
+  </div>
+
+  <nav>
+    <button id="btn-cronograma" class="nav-btn active" onclick="showPage('cronograma')">📅 Cronograma</button>
+    <button id="btn-tracker" class="nav-btn" onclick="showPage('tracker')">🧠 Habit Tracker</button>
+    <button id="btn-idiomas" class="nav-btn" onclick="showPage('idiomas')">🌏 Idiomas Lab</button>
+    <button id="btn-calendario" class="nav-btn" onclick="showPage('calendario')">📆 Calendário</button>
+  </nav>
+
+  <div class="frase-box">
+    <div class="frase-label">✦ Frase do Dia</div>
+    <div class="frase-text" id="fraseText">…</div>
+    <div class="frase-author" id="fraseAuthor"></div>
+    <button class="frase-refresh" onclick="loadFrase()">↻ nova frase</button>
+  </div>
+
+</div>
+</aside>
+
+<!-- YOUTUBE FLUTUANTE -->
+<div class="yt-float" id="ytFloat">
+  <div class="yt-float-header" onclick="toggleYTFloat()">
+    <div class="yt-float-title">YouTube</div>
+    <button class="yt-float-toggle" id="ytFloatToggleBtn">▼</button>
+  </div>
+  <div class="yt-float-body" id="ytFloatBody">
+    <div class="yt-search-area">
+      <div class="yt-search-row">
+        <input id="ytSearchInput" class="yt-search-input" placeholder="🔍 Buscar música / vídeo...">
+        <button class="yt-search-btn" onclick="searchYT()">Buscar</button>
+      </div>
+      <div class="yt-url-row">
+        <input id="ytUrl" class="yt-url-input" placeholder="Ou cole link direto...">
+        <button class="yt-load-btn" onclick="loadYTFromUrl()">▶ Link</button>
+      </div>
+    </div>
+    <div id="ytResults"></div>
+    <div class="yt-player-wrap">
+      <div id="ytPlayerDiv"></div>
+    </div>
+    <div class="yt-controls" id="ytControls">
+      <button class="yt-ctrl-btn" onclick="ytCmd('playVideo')">▶</button>
+      <button class="yt-ctrl-btn" onclick="ytCmd('pauseVideo')">⏸</button>
+      <button class="yt-ctrl-btn" onclick="ytCmd('stopVideo')">⏹</button>
+    </div>
+    <div class="yt-now-playing" id="ytNowPlaying"></div>
+  </div>
+</div>
+
+<main class="content">
+
+<!-- CRONOGRAMA -->
+<div id="view-cronograma">
+  <div class="page-header">
+    <h1>📚 Cronograma de Estudos</h1>
+    <p>Arraste para reorganizar · ＋ para adicionar · <strong style="color:#60a5fa">Botão direito</strong> para excluir</p>
+  </div>
+  <div class="suggestion-box hidden-box" id="suggestionBox">
+    <div class="sug-icon">⚠️</div>
+    <div class="sug-content">
+      <div class="sug-title">Sugestão Inteligente</div>
+      <div class="sug-text" id="suggestionText"></div>
+      <button class="sug-dismiss" onclick="dismissSuggestion()">Dispensar</button>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot c-bb"></div>Concurso BB</div>
+    <div class="legend-item"><div class="legend-dot c-idiom"></div>Idiomas</div>
+    <div class="legend-item"><div class="legend-dot c-facul"></div>Faculdade</div>
+    <div class="legend-item"><div class="legend-dot c-math"></div>Proj. Mat.</div>
+    <div class="legend-item"><div class="legend-dot c-custom"></div>Personalizado</div>
+  </div>
+  <div class="sched-grid" id="schedGrid"></div>
+  <button class="sched-reset" onclick="resetSchedule()">↺ Restaurar cronograma original</button>
+</div>
+
+<!-- TRACKER -->
+<div id="view-tracker" class="hidden">
+  <div class="page-header">
+    <h1>📊 Habit Tracker</h1>
+    <p>+10 XP por checkbox · R7/R15 individuais · 🎊 Confetti</p>
+  </div>
+  <div class="tracker-wrap">
+    <div class="tracker-top-bar">
+      <div class="week-controls">
+        <span style="font-weight:700;color:#94a3b8">SEMANA:</span>
+        <select class="week-select" id="weekSelector" onchange="loadTrackerData()">
+          <option value="1">Semana 01</option><option value="2">Semana 02</option>
+          <option value="3">Semana 03</option><option value="4">Semana 04</option>
+          <option value="5">Semana 05</option>
+        </select>
+      </div>
+      <button class="btn-add-materia" onclick="openAddMateriaModal()">＋ Nova Matéria</button>
+    </div>
+    <table class="tracker-table">
+      <thead><tr><th width="18%">Matéria</th><th>Aulas da Semana</th></tr></thead>
+      <tbody id="trackerBody"></tbody>
+    </table>
+    <div class="clearfix">
+      <span class="save-msg" id="saveMsg">✅ Salvo!</span>
+      <button class="btn-save" onclick="saveTrackerData()">💾 Salvar Semana</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDIOMAS -->
+<div id="view-idiomas" class="hidden">
+  <div class="page-header">
+    <h1>🌏 Idiomas Lab</h1>
+    <p>Japonês · Coreano · 🔊 Clique nas letras para ouvir · Tradutor JP</p>
+  </div>
+  <div class="lab-grid">
+
+    <div class="kanji-card lab-grid-full">
+      <div class="kanji-badge">漢字 · Kanji do Dia</div>
+      <div class="kanji-symbol" id="kanjiChar">一</div>
+      <div class="kanji-info">
+        <div class="kanji-item"><label>Significado</label><div class="val" id="kanjiSig">Um</div></div>
+        <div class="kanji-item"><label>Leitura On</label><div class="val" id="kanjiOn">イチ・イツ</div><div class="roma" id="kanjiOnR">Ichi / Itsu</div></div>
+        <div class="kanji-item"><label>Leitura Kun</label><div class="val" id="kanjiKun">ひと・つ</div><div class="roma" id="kanjiKunR">hito / -tsu</div></div>
+        <div class="kanji-item"><label>JLPT</label><div class="val" id="kanjiJlpt">N5</div></div>
+      </div>
+      <div class="kanji-counter" id="kanjiCounter"></div>
+      <div class="kanji-nav">
+        <button onclick="prevKanji()">← Anterior</button>
+        <button onclick="randomKanji()" style="border-color:#7c3aed;color:#a78bfa">🎲 Aleatório</button>
+        <button onclick="nextKanji()">Próximo →</button>
+        <button class="kanji-add-btn" onclick="openKanjiModal()">＋ Adicionar Kanji</button>
+      </div>
+    </div>
+
+    <!-- KANA COM ÁUDIO -->
+    <div class="kana-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+        <h3 id="kanaTitle">🇯🇵 Hiragana <span style="font-size:.55rem;color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none">🔊 clique p/ ouvir</span></h3>
+        <div class="kana-toggle">
+          <button class="kana-toggle-btn active" id="btnHira" onclick="switchKana('hira')">ひ Hiragana</button>
+          <button class="kana-toggle-btn" id="btnKata" onclick="switchKana('kata')">カ Katakana</button>
+        </div>
+      </div>
+      <table class="kana-table">
+        <thead><tr><th></th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr></thead>
+        <tbody id="kanaBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TRADUTOR JAPONÊS -->
+    <div class="jp-translator">
+      <h3>🈳 Tradutor Japonês <span>PT ↔ JP ↔ EN · IA</span></h3>
+      <div class="jp-trans-dir">
+        <button class="jp-trans-dir-btn active" id="dirPtJp" onclick="setTransDir('pt-jp')">🇧🇷 PT → 🇯🇵 JP</button>
+        <button class="jp-trans-dir-btn" id="dirJpPt" onclick="setTransDir('jp-pt')">🇯🇵 JP → 🇧🇷 PT</button>
+        <button class="jp-trans-dir-btn" id="dirJpEn" onclick="setTransDir('jp-en')">🇯🇵 JP → 🇺🇸 EN</button>
+      </div>
+      <div class="jp-trans-row">
+        <input class="jp-trans-input" id="jpTransInput" placeholder="Digite para traduzir...">
+        <button class="jp-trans-btn" id="jpTransBtn" onclick="doTranslate()">Traduzir</button>
+      </div>
+      <div class="jp-trans-result" id="jpTransResult">
+        <div class="jp-trans-result-text" id="jpTransText" style="color:var(--muted);font-size:.75rem">A tradução aparecerá aqui...</div>
+      </div>
+      <div class="api-notice">
+        💡 <strong>Tradutor usa a API Claude.</strong> Para funcionar, cole sua chave em 
+        <a onclick="openApiKeyPrompt()">Configurar API Key</a>. 
+        A chave fica salva localmente só no seu navegador.
+      </div>
+    </div>
+
+    <!-- HANGUL -->
+    <div class="hangul-lab lab-grid-full">
+      <div class="hangul-lab-header">
+        <h3>🇰🇷 Hangul — Combinador + Áudio</h3>
+        <button class="hangul-add-btn" onclick="openHangulAddModal()">＋ Letra</button>
+      </div>
+      <div class="hangul-cols">
+        <div>
+          <span class="hangul-section-label">① Consoante (자음) <span style="font-size:.52rem;color:var(--muted2)">clique direito p/ excluir</span></span>
+          <div class="hangul-keys" id="hangulConsoantes"></div>
+        </div>
+        <div>
+          <span class="hangul-section-label">② Vogal (모음) <span style="font-size:.52rem;color:var(--muted2)">clique direito p/ excluir</span></span>
+          <div class="hangul-keys" id="hangulVogais"></div>
+        </div>
+      </div>
+      <div class="hangul-result">
+        <div class="hangul-syllable" id="hangulSyllable">?</div>
+        <div class="hangul-combo-label" id="hangulComboLabel">Selecione ① e ②</div>
+        <div class="hangul-actions">
+          <button class="hangul-speak" id="hangulSpeakBtn" onclick="speakHangul()" disabled>🔊 Ouvir</button>
+          <button class="hangul-clear" onclick="clearHangul()">✕ Limpar</button>
+        </div>
+        <div class="speech-status" id="speechStatus"></div>
+        <div class="hangul-test-panel">
+          <label>✏️ Testar qualquer texto coreano:</label>
+          <div class="hangul-test-row">
+            <input class="hangul-test-input" id="hangulTestInput" placeholder="ex: 안녕, 가, 나..." maxlength="20">
+            <button class="hangul-test-speak" onclick="speakCustomHangul()">🔊</button>
+          </div>
+          <div class="hangul-test-preview" id="hangulTestPreview">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CALENDARIO -->
+<div id="view-calendario" class="hidden">
+  <div class="page-header">
+    <h1>📆 Calendário de Estudos</h1>
+    <p>Todas as matérias do cronograma por dia · ✓ = concluído · 🔥 = streak</p>
+  </div>
+  <div class="calendar-wrap">
+    <div class="cal-nav">
+      <button onclick="calPrev()">← Anterior</button>
+      <div class="cal-month-title" id="calMonthTitle"></div>
+      <button onclick="calNext()">Próximo →</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:linear-gradient(135deg,#052e22,#064e3b);border:1px solid #10b981"></div>Dia estudado</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:linear-gradient(135deg,#3a1000,#451400);border:1px solid #f59e0b"></div>Streak 🔥</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="border:1px solid #60a5fa;background:transparent"></div>Hoje</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODALS (unchanged) -->
+<div class="modal-overlay hidden" id="kanjiModal">
+  <div class="modal-box">
+    <h3>＋ Adicionar Novo Kanji</h3>
+    <div class="modal-field"><label>Kanji (símbolo)</label><input id="mChar" placeholder="例: 春" maxlength="2" style="font-size:2rem;text-align:center"></div>
+    <div class="modal-field"><label>Significado (PT)</label><input id="mSig" placeholder="ex: Primavera"></div>
+    <div class="modal-field"><label>Leitura On (カタカナ)</label><input id="mOn" placeholder="ex: シュン"></div>
+    <div class="modal-field"><label>On Romanizado</label><input id="mOnR" placeholder="ex: Shun"></div>
+    <div class="modal-field"><label>Leitura Kun (ひらがな)</label><input id="mKun" placeholder="ex: はる"></div>
+    <div class="modal-field"><label>Kun Romanizado</label><input id="mKunR" placeholder="ex: haru"></div>
+    <div class="modal-field"><label>Nível JLPT</label><input id="mJlpt" placeholder="ex: N4"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeKanjiModal()">Cancelar</button>
+      <button class="modal-save" onclick="saveNewKanji()">Salvar Kanji</button>
+    </div>
+  </div>
+</div>
+
+<div class="gen-modal-overlay hidden" id="addMateriaModal">
+  <div class="gen-modal-box">
+    <h3>＋ Nova Matéria</h3>
+    <label>Nome da Matéria</label>
+    <input id="newMatName" placeholder="ex: Escrever meu Livro 📖">
+    <div class="gen-modal-actions">
+      <button class="gen-modal-cancel" onclick="closeAddMateriaModal()">Cancelar</button>
+      <button class="gen-modal-save" onclick="confirmAddMateria()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="gen-modal-overlay hidden" id="addSchedModal">
+  <div class="gen-modal-box">
+    <h3>＋ Nova Matéria no Cronograma</h3>
+    <label>Nome</label><input id="newSchedTitle" placeholder="ex: Revisão de Redação">
+    <label>Descrição (opcional)</label><input id="newSchedSub" placeholder="ex: 30 min">
+    <label>Categoria</label>
+    <select id="newSchedCat">
+      <option value="bb">Concurso BB</option>
+      <option value="idiom">Idiomas</option>
+      <option value="facul">Faculdade</option>
+      <option value="math">Proj. Mat.</option>
+      <option value="custom">Personalizado</option>
+    </select>
+    <div class="gen-modal-actions">
+      <button class="gen-modal-cancel" onclick="closeAddSchedModal()">Cancelar</button>
+      <button class="gen-modal-save" onclick="confirmAddSchedItem()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="hg-modal-overlay hidden" id="hangulAddModal">
+  <div class="hg-modal-box">
+    <h3>＋ Adicionar Letra Hangul</h3>
+    <label>Tipo</label>
+    <select id="hgType">
+      <option value="con">Consoante (자음)</option>
+      <option value="vog">Vogal (모음)</option>
+    </select>
+    <label>Caractere Hangul</label>
+    <input id="hgChar" placeholder="ex: ㄱ ou ㅏ" maxlength="2" style="font-size:1.5rem;text-align:center">
+    <label>Romanização (som)</label>
+    <input id="hgRom" placeholder="ex: g/k ou a">
+    <label>Índice Unicode (para combinar sílabas)</label>
+    <input id="hgIdx" placeholder="ex: 0" type="number" min="0" max="30">
+    <div style="font-size:.6rem;color:var(--muted2);margin-top:5px;line-height:1.5">
+      💡 <strong>Consoante ini:</strong> ㄱ=0, ㄴ=2, ㄷ=3, ㄹ=5, ㅁ=6, ㅂ=7, ㅅ=9, ㅇ=11, ㅈ=12, ㅊ=14, ㅋ=15, ㅌ=16, ㅍ=17, ㅎ=18<br>
+      💡 <strong>Vogal med:</strong> ㅏ=0, ㅑ=1, ㅓ=2, ㅕ=3, ㅗ=4, ㅛ=5, ㅜ=6, ㅠ=7, ㅡ=8, ㅣ=9
+    </div>
+    <div class="hg-modal-actions">
+      <button class="hg-modal-cancel" onclick="closeHangulAddModal()">Cancelar</button>
+      <button class="hg-modal-save" onclick="confirmAddHangulLetter()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ctx-menu hidden" id="ctxMenu">
+  <div class="ctx-title" id="ctxTitle"></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" id="ctxAction" onclick="handleCtxAction()">🗑&nbsp; Excluir</div>
+</div>
+
+<div class="sticky">
+  <div class="sticky-header" onclick="toggleSticky()">
+    <span>📝 Anotações</span>
+    <button class="sticky-toggle" id="stickyToggleBtn">▼</button>
+  </div>
+  <div class="sticky-body" id="stickyBody">
+    <textarea class="sticky-textarea" id="stickyText" placeholder="Fórmulas, recados...&#10;&#10;Ex: J = C × i × t"></textarea>
+    <div class="sticky-footer">
+      <span class="sticky-saved" id="stickySaved">✓ salvo</span>
+      <button class="sticky-clear" onclick="clearSticky()">🗑 limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- YouTube IFrame API -->
+<script>
+var _ytPlayer=null,_ytApiReady=false,_ytPending=null;
+function onYouTubeIframeAPIReady(){
+  _ytApiReady=true;
+  if(_ytPending)_buildPlayer(_ytPending.vid,_ytPending.list,_ytPending.title);
+}
+function _buildPlayer(vid,list,title){
+  document.getElementById('ytPlayerDiv').innerHTML='<div id="ytIframe"></div>';
+  const vars={rel:0,modestbranding:1,autoplay:1,origin:location.origin||'https://estudos.local'};
+  if(list)vars.listType='playlist',vars.list=list;
+  _ytPlayer=new YT.Player('ytIframe',{
+    height:'130',width:'100%',
+    videoId:vid||'',
+    playerVars:vars,
+    events:{
+      onReady:e=>{
+        document.getElementById('ytControls').classList.add('visible');
+        if(list&&!vid)e.target.loadPlaylist({list:list,listType:'playlist'});
+        if(title)document.getElementById('ytNowPlaying').textContent='▶ '+title;
+      },
+      onError:e=>console.warn('YT error',e.data)
+    }
+  });
+}
+function ytCmd(c){if(_ytPlayer&&_ytPlayer[c])_ytPlayer[c]();}
+function parseYT(url){
+  const vid=(url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)||[])[1]||null;
+  const list=(url.match(/[?&]list=([a-zA-Z0-9_-]+)/)||[])[1]||null;
+  return(vid||list)?{vid,list}:null;
+}
+function loadYTFromUrl(){
+  const raw=document.getElementById('ytUrl').value.trim();
+  if(!raw){alert('Cole um link do YouTube primeiro.');return;}
+  const p=parseYT(raw);
+  if(!p){alert('Link não reconhecido.');return;}
+  localStorage.setItem('yt_url',raw);
+  if(_ytApiReady)_buildPlayer(p.vid,p.list,'Vídeo carregado');
+  else _ytPending={...p,title:'Vídeo carregado'};
+}
+function restoreYT(){
+  const s=localStorage.getItem('yt_url');
+  if(s){document.getElementById('ytUrl').value=s;}
+}
+
+/* ── YOUTUBE SEARCH (via oEmbed + noembed) ── */
+// We use a search approach: build a YouTube search URL and show results via iframe scraping
+// Since YouTube Data API requires a key, we use the noembed API for individual URLs
+// For search, we use a YouTube search embed approach
+
+let _ytSearchTimeout=null;
+document.addEventListener('DOMContentLoaded',()=>{
+  const si=document.getElementById('ytSearchInput');
+  if(si){
+    si.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){e.preventDefault();searchYT();}
+    });
+  }
+});
+
+async function searchYT(){
+  const q=document.getElementById('ytSearchInput').value.trim();
+  if(!q)return;
+  const res=document.getElementById('ytResults');
+  res.innerHTML=`<div class="yt-searching"><div class="yt-spinner"></div>Buscando...</div>`;
+
+  try {
+    // Use YouTube's search suggestion API + fetch video IDs via RSS
+    // We'll use the YouTube RSS search feed (no key required)
+    const searchUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+    
+    // Since direct fetch is blocked by CORS, we use an alternative:
+    // Fetch via a CORS proxy using the YouTube RSS feed
+    const rssUrl=`https://www.youtube.com/feeds/videos.xml?search=${encodeURIComponent(q)}&max-results=8`;
+    
+    // Try noembed approach: build search results from known patterns
+    // Best no-key approach: use YouTube's opensearch/suggestions
+    const sugUrl=`https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(q)}&callback=ytSugCB`;
+    
+    // We'll use an iframe-based search approach
+    // Show results as clickable items using YouTube's search results
+    showYTSearchResults(q, res);
+    
+  } catch(e){
+    res.innerHTML=`<div class="yt-no-results">Erro na busca. Tente colar o link diretamente.</div>`;
+  }
+}
+
+// YouTube search without API key - using a curated approach
+// We build clickable search results that open within our player
+function showYTSearchResults(q, container){
+  // Generate search URL for manual browsing as fallback
+  // Use YouTube's own search embed capability
+  container.innerHTML='';
+  
+  // Create search results using YouTube's noEmbed service
+  // We'll show a search iframe in a minimal way
+  const searchFrame=document.createElement('div');
+  searchFrame.style.cssText='padding:5px 7px;';
+  
+  // Build 5 placeholder result tiles that load via search
+  // Each tile, when clicked, searches YouTube embedded
+  const queryTerms=q.split(' ').slice(0,4).join('+');
+  
+  // Use YouTube embed search directly
+  const embedSearch=document.createElement('div');
+  embedSearch.innerHTML=`
+    <div style="padding:4px 7px 2px;font-size:.58rem;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;">
+      Resultados para: <strong style="color:#e2e8f0">${q}</strong>
+    </div>
+    <div style="padding:3px 7px 5px;display:flex;gap:5px;flex-wrap:wrap;">
+      <button onclick="loadSearchResult('${encodeURIComponent(q)}')" style="background:#1a2640;border:1px solid #283550;color:#93c5fd;padding:5px 9px;border-radius:6px;cursor:pointer;font-size:.65rem;font-weight:700;transition:.2s;" onmouseover="this.style.borderColor='#ff0000'" onmouseout="this.style.borderColor='#283550'">
+        ▶ Tocar: "${q}"
+      </button>
+    </div>
+    <div id="ytSearchGrid" style="padding:0 5px 5px;display:grid;gap:4px;"></div>
+  `;
+  container.appendChild(embedSearch);
+  
+  // Load actual results via YouTube's noSearch embed
+  loadYTSearchGrid(q, document.getElementById('ytSearchGrid'));
+}
+
+async function loadYTSearchGrid(q, gridEl){
+  if(!gridEl)return;
+  
+  // Try to get video suggestions using YouTube's public API
+  // Use the RSS/Atom feed for channel search (no API key)
+  // Fallback: show a search embed
+  
+  // Provide quick-access preset searches based on query
+  const presets=generateSearchPresets(q);
+  gridEl.innerHTML=presets.map(p=>`
+    <div class="yt-result-item" onclick="loadYTVideo('${p.id}','${escJ(p.title)}')">
+      <img class="yt-result-thumb" src="https://img.youtube.com/vi/${p.id}/mqdefault.jpg" onerror="this.style.background='#1a2640'" loading="lazy">
+      <div class="yt-result-info">
+        <div class="yt-result-title">${p.title}</div>
+        <div class="yt-result-ch">${p.ch||''}</div>
+      </div>
+    </div>
+  `).join('');
+  
+  if(!presets.length){
+    gridEl.innerHTML=`<div class="yt-no-results" style="padding:8px">
+      <div style="margin-bottom:6px">Busca direta não disponível sem API key.</div>
+      <div>Cole o link do YouTube ou use o botão abaixo:</div>
+      <a href="https://youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" style="color:#60a5fa;font-size:.65rem;display:inline-block;margin-top:5px;text-decoration:underline">Abrir busca no YouTube ↗</a>
+    </div>`;
+  }
+}
+
+function loadSearchResult(encodedQ){
+  // Load first result of search using YouTube's search embed
+  const q=decodeURIComponent(encodedQ);
+  document.getElementById('ytPlayerDiv').innerHTML='<div id="ytIframe"></div>';
+
+  if(!_ytApiReady){
+    document.getElementById('ytResults').innerHTML=`<div class="yt-no-results">API do YouTube ainda carregando, aguarde...</div>`;
+    return;
+  }
+
+  // Use the search embed (playlist type search)
+  _ytPlayer=new YT.Player('ytIframe',{
+    height:'130',width:'100%',
+    playerVars:{
+      listType:'search',
+      list:q,
+      rel:0,modestbranding:1,autoplay:1
+    },
+    events:{
+      onReady:e=>{
+        document.getElementById('ytControls').classList.add('visible');
+        document.getElementById('ytNowPlaying').textContent='▶ Buscando: '+q;
+      },
+      onError:e=>{
+        document.getElementById('ytNowPlaying').textContent='⚠ Abra o YouTube para buscar';
+      }
+    }
+  });
+}
+
+function loadYTVideo(videoId, title){
+  if(!videoId)return;
+  document.getElementById('ytResults').innerHTML='';
+  const decodedTitle=title.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  if(_ytApiReady)_buildPlayer(videoId,null,decodedTitle);
+  else _ytPending={vid:videoId,list:null,title:decodedTitle};
+}
+
+function escJ(s){return String(s||'').replace(/'/g,"&#39;").replace(/"/g,'&quot;');}
+
+// Popular study/music presets for common searches
+function generateSearchPresets(q){
+  const ql=q.toLowerCase();
+  const presets=[];
+  
+  // Lofi / study music presets
+  if(ql.includes('lofi')||ql.includes('lo-fi')||ql.includes('estudo')||ql.includes('study')){
+    presets.push(
+      {id:'jfKfPfyJRdk',title:'lofi hip hop radio - beats to relax/study to',ch:'Lofi Girl'},
+      {id:'5qap5aO4i9A',title:'lofi hip hop radio - beats to study/chill to',ch:'Lofi Girl'},
+      {id:'DWcJFNfaw9c',title:'Deep Focus - Music For Coding, Programming',ch:'Lofi Girl'},
+    );
+  }
+  if(ql.includes('kpop')||ql.includes('k-pop')||ql.includes('bts')){
+    presets.push(
+      {id:'gdZLi9oWNZg',title:'BTS (방탄소년단) Dynamite - Official MV',ch:'HYBE LABELS'},
+      {id:'VuNIsY6JdUw',title:'BTS (방탄소년단) Boy With Luv ft. Halsey',ch:'HYBE LABELS'},
+    );
+  }
+  if(ql.includes('japones')||ql.includes('japanese')||ql.includes('japan')||ql.includes('anime')){
+    presets.push(
+      {id:'psuRGfAaju4',title:'Ghibli Medley Piano - Music for studying',ch:'Ghibli Piano'},
+      {id:'l0u7QBCZ6bU',title:'Japanese Music For Studying And Concentration',ch:'Japan Vibes'},
+    );
+  }
+  if(ql.includes('classi')||ql.includes('classic')||ql.includes('piano')){
+    presets.push(
+      {id:'_Yhyp-_hX2s',title:'Beautiful Piano Music - Study / Relaxing Music',ch:'Meditation Relax Music'},
+      {id:'4N1iwQxiHrs',title:'Classical Music for Studying & Brain Power',ch:'Greenred Productions'},
+    );
+  }
+  if(ql.includes('concentr')||ql.includes('focus')||ql.includes('foco')){
+    presets.push(
+      {id:'WPni755-Krg',title:'Focus Music - Binaural Beats Study Music',ch:'Greenred Productions'},
+      {id:'jfKfPfyJRdk',title:'lofi hip hop radio - beats to relax/study to',ch:'Lofi Girl'},
+    );
+  }
+  
+  return presets;
+}
+</script>
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+const DOW_TO_ID=['dom','seg','ter','qua','qui','sex','sab'];
+
+/* ══════════════════════════════════════════
+   YOUTUBE FLOAT TOGGLE
+══════════════════════════════════════════ */
+let ytFloatOpen=true;
+function toggleYTFloat(){
+  ytFloatOpen=!ytFloatOpen;
+  document.getElementById('ytFloat').classList.toggle('collapsed',!ytFloatOpen);
+  document.getElementById('ytFloatToggleBtn').textContent=ytFloatOpen?'▼':'▲';
+}
+
+/* ══════════════════════════════════════════
+   PROFILE
+══════════════════════════════════════════ */
+function getProfileName(){return localStorage.getItem('profileName')||'B';}
+function renderProfile(){
+  const n=getProfileName();
+  document.getElementById('profileNameDisplay').textContent=n;
+  document.getElementById('avatarEl').textContent=n.charAt(0).toUpperCase();
+}
+function editName(){
+  const cur=getProfileName();
+  const nd=document.getElementById('profileNameDisplay');
+  nd.innerHTML=`<input class="profile-name-input" id="nameEditInput" value="${esc(cur)}" maxlength="20">`;
+  const inp=document.getElementById('nameEditInput');
+  inp.focus();inp.select();
+  const save=()=>{const v=inp.value.trim()||cur;localStorage.setItem('profileName',v);renderProfile();};
+  inp.addEventListener('blur',save);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){nd.textContent=cur;}});
+}
+
+/* ══════════════════════════════════════════
+   GAMIFICATION
+══════════════════════════════════════════ */
+const XP_PER_LEVEL=100;
+function getXP(){return parseInt(localStorage.getItem('userXP')||'0');}
+function setXP(v){localStorage.setItem('userXP',String(v));}
+function getLevel(){return Math.floor(getXP()/XP_PER_LEVEL)+1;}
+function getXPInLevel(){return getXP()%XP_PER_LEVEL;}
+function addXP(amount){
+  const prev=getLevel();
+  setXP(getXP()+amount);
+  const next=getLevel();
+  renderGameBar();
+  showXPFlash('+'+amount+' XP');
+  if(next>prev)setTimeout(()=>showLevelUp(next),650);
+}
+function renderGameBar(){
+  const xp=getXPInLevel(),lv=getLevel();
+  document.getElementById('xpBarFill').style.width=Math.min(100,(xp/XP_PER_LEVEL)*100)+'%';
+  document.getElementById('xpLabel').textContent=`${xp} / ${XP_PER_LEVEL} XP`;
+  document.getElementById('levelBadge').textContent=`Nível ${lv}`;
+}
+function showXPFlash(t){const el=document.createElement('div');el.className='xp-flash';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),960);}
+function showLevelUp(lv){const el=document.createElement('div');el.className='levelup-flash';el.innerHTML=`🎉 LEVEL UP!<br><span style="font-size:.85rem">Agora você é Nível ${lv}!</span>`;document.body.appendChild(el);setTimeout(()=>el.remove(),1650);}
+function getStreak(){return parseInt(localStorage.getItem('streakDays')||'0');}
+function getLastStudyDay(){return localStorage.getItem('lastStudyDay')||'';}
+function markStudyToday(){
+  const today=todayStr(),last=getLastStudyDay();
+  if(today===last)return;
+  const yd=new Date();yd.setDate(yd.getDate()-1);
+  const yStr=`${yd.getFullYear()}-${String(yd.getMonth()+1).padStart(2,'0')}-${String(yd.getDate()).padStart(2,'0')}`;
+  const streak=(last===yStr)?getStreak()+1:1;
+  localStorage.setItem('streakDays',String(streak));
+  localStorage.setItem('lastStudyDay',today);
+  renderStreak();
+  const studied=getStudiedDays();
+  if(!studied.includes(today)){studied.push(today);localStorage.setItem('studiedDays',JSON.stringify(studied));}
+}
+function renderStreak(){document.getElementById('streakCount').textContent=getStreak();}
+function getStudiedDays(){return JSON.parse(localStorage.getItem('studiedDays')||'[]');}
+function getStreakDays(){
+  const streak=getStreak(),last=getLastStudyDay();
+  if(!last||!streak)return[];
+  const days=[];
+  const base=new Date(last+'T12:00:00');
+  for(let i=0;i<streak;i++){
+    const d=new Date(base);d.setDate(d.getDate()-i);
+    days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  }
+  return days;
+}
+function fireConfetti(){confetti({particleCount:80,spread:70,origin:{y:0.6},colors:['#60a5fa','#a78bfa','#34d399','#f59e0b','#f43f5e']});}
+
+/* ══════════════════════════════════════════
+   SUGGESTION
+══════════════════════════════════════════ */
+function analyzeSuggestions(){
+  const mats=getMats();const scores={};mats.forEach(m=>{scores[m]=0;});
+  for(let w=1;w<=5;w++){const d=JSON.parse(localStorage.getItem('tracker_w'+w)||'null');if(!d)continue;mats.forEach((m,i)=>{const row=d[i];if(!row||!row.aulas)return;row.aulas.forEach(a=>{if(a.feito)scores[m]=(scores[m]||0)+1;});});}
+  const sorted=Object.entries(scores).sort((a,b)=>a[1]-b[1]);if(!sorted.length)return;
+  const [matName,count]=sorted[0];const name=getProfileName();
+  const box=document.getElementById('suggestionBox');const txt=document.getElementById('suggestionText');
+  if(count===0){txt.innerHTML=`<strong>${name}</strong>, você ainda não estudou <strong>${matName}</strong>. Que tal começar hoje? 💪`;box.classList.remove('hidden-box');}
+  else if(count<3){txt.innerHTML=`<strong>${name}</strong>, você estudou <strong>${matName}</strong> poucas vezes. Bora revisar? 📖`;box.classList.remove('hidden-box');}
+  else{box.classList.add('hidden-box');}
+}
+function dismissSuggestion(){document.getElementById('suggestionBox').classList.add('hidden-box');}
+
+/* ══════════════════════════════════════════
+   CRONOGRAMA
+══════════════════════════════════════════ */
+const DEFAULT_SCHEDULE=[
+  {id:'seg',label:'📅 Segunda-feira',cls:'seg',items:[
+    {id:'seg-ptbasico',dot:'c-bb',title:'Português Básico',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'seg-info',dot:'c-bb',title:'Informática',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'seg-en-verg',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Vergara',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'seg-jp',dot:'c-idiom',title:'🇯🇵 Japonês',sub:'4x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+  ]},
+  {id:'ter',label:'📅 Terça-feira',cls:'ter',items:[
+    {id:'ter-ptavanc',dot:'c-bb',title:'Português Avançado',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'ter-mat',dot:'c-bb',title:'Matemática',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'ter-en-gab',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Gabriela',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'ter-kr',dot:'c-idiom',title:'🇰🇷 Coreano',sub:'3x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+  ]},
+  {id:'qua',label:'📅 Quarta-feira',cls:'qua',items:[
+    {id:'qua-red',dot:'c-bb',title:'Redação',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'qua-matf',dot:'c-bb',title:'Matemática Financeira',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'qua-en-verg',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Vergara',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'qua-jp',dot:'c-idiom',title:'🇯🇵 Japonês',sub:'4x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'qua-edtec',dot:'c-facul',title:'🎓 Ed. Tecnologia e Inovação',sub:'2x/semana · início em abril',badge:'Abril ↗',badgeCls:'b-april'},
+  ]},
+  {id:'qui',label:'📅 Quinta-feira',cls:'qui',items:[
+    {id:'qui-en-bb',dot:'c-bb',title:'Língua Inglesa (BB)',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'qui-banco',dot:'c-bb',title:'Conhecimentos Bancários',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'qui-en-gab',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Gabriela',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'qui-kr',dot:'c-idiom',title:'🇰🇷 Coreano',sub:'3x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+  ]},
+  {id:'sex',label:'📅 Sexta-feira',cls:'sex',items:[
+    {id:'sex-atual',dot:'c-bb',title:'Atualidades',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'sex-merc',dot:'c-bb',title:'Mercado, Vendas e Negociação',sub:'30 min aula + 30 min questões',badge:'BB',badgeCls:'b-bb'},
+    {id:'sex-en-verg',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Vergara',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'sex-jp',dot:'c-idiom',title:'🇯🇵 Japonês',sub:'4x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'sex-kr',dot:'c-idiom',title:'🇰🇷 Coreano',sub:'3x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+  ]},
+  {id:'sab',label:'📅 Sábado (opcional)',cls:'sab',items:[
+    {id:'sab-en-gab',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Gabriela',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+  ]},
+  {id:'dom',label:'📅 Domingo',cls:'dom',items:[
+    {id:'dom-en-gab',dot:'c-idiom',title:'🇺🇸 Inglês — Prof. Gabriela',sub:'Estudo diário',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'dom-jp',dot:'c-idiom',title:'🇯🇵 Japonês',sub:'4x/semana',badge:'Idioma',badgeCls:'b-idiom'},
+    {id:'dom-edtec',dot:'c-facul',title:'🎓 Ed. Tecnologia e Inovação',sub:'2x/semana · início em abril',badge:'Abril ↗',badgeCls:'b-april'},
+    {id:'dom-projmat',dot:'c-math',title:'📐 Projeto de Matemática',sub:'30 min',badge:'Facul',badgeCls:'b-math'},
+  ]},
+];
+const CAT_MAP={bb:{dot:'c-bb',badge:'BB',badgeCls:'b-bb'},idiom:{dot:'c-idiom',badge:'Idioma',badgeCls:'b-idiom'},facul:{dot:'c-facul',badge:'Facul',badgeCls:'b-facul'},math:{dot:'c-math',badge:'Mat.',badgeCls:'b-math'},custom:{dot:'c-custom',badge:'Extra',badgeCls:'b-custom'}};
+const DOT_TO_CHIP={'c-bb':'chip-bb','c-idiom':'chip-idiom','c-facul':'chip-facul','c-math':'chip-math','c-custom':'chip-custom'};
+let _pendingDay=null;
+
+function buildItemHTML(item){
+  return `<div class="sched-item" data-id="${esc(item.id)}" data-dot="${item.dot}" data-title="${esc(item.title)}" data-sub="${esc(item.sub)}" data-badge="${esc(item.badge)}" data-badge-cls="${item.badgeCls}">
+    <span class="drag-handle">⠿</span><div class="dot ${item.dot}"></div>
+    <div class="item-text"><div class="item-title">${item.title}</div><div class="item-sub">${item.sub}</div></div>
+    <span class="badge ${item.badgeCls}">${item.badge}</span>
+  </div>`;
+}
+function renderSchedule(data){
+  const g=document.getElementById('schedGrid');g.innerHTML='';
+  data.forEach(day=>{
+    const c=document.createElement('div');c.className=`day-card ${day.cls}`;
+    c.innerHTML=`<div class="day-header"><span>${day.label}</span><button class="day-add-btn" onclick="openAddSchedModal('${day.id}')">＋</button></div><div class="items-list" data-day="${day.id}">${day.items.map(buildItemHTML).join('')}</div>`;
+    g.appendChild(c);
+  });
+  initSortable();
+}
+function initSortable(){
+  document.querySelectorAll('.items-list').forEach(l=>{
+    if(l._s)l._s.destroy();
+    l._s=Sortable.create(l,{group:'schedule',animation:150,handle:'.drag-handle',ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:saveSchedule});
+  });
+}
+function saveSchedule(){
+  const map={};
+  document.querySelectorAll('.items-list').forEach(l=>{
+    const items=[];
+    l.querySelectorAll('.sched-item').forEach(el=>items.push({id:el.dataset.id,dot:el.dataset.dot,title:el.dataset.title,sub:el.dataset.sub,badge:el.dataset.badge,badgeCls:el.dataset.badgeCls}));
+    map[l.dataset.day]=items;
+  });
+  localStorage.setItem('schedule_v3',JSON.stringify(map));
+}
+function loadSchedule(){
+  const raw=localStorage.getItem('schedule_v3');
+  if(!raw)return DEFAULT_SCHEDULE;
+  const map=JSON.parse(raw);
+  return DEFAULT_SCHEDULE.map(d=>({...d,items:map[d.id]!==undefined?map[d.id]:d.items}));
+}
+function resetSchedule(){if(confirm('Restaurar cronograma original?')){localStorage.removeItem('schedule_v3');renderSchedule(DEFAULT_SCHEDULE);}}
+function openAddSchedModal(dayId){_pendingDay=dayId;document.getElementById('newSchedTitle').value='';document.getElementById('newSchedSub').value='';document.getElementById('newSchedCat').value='custom';document.getElementById('addSchedModal').classList.remove('hidden');setTimeout(()=>document.getElementById('newSchedTitle').focus(),100);}
+function closeAddSchedModal(){document.getElementById('addSchedModal').classList.add('hidden');}
+function confirmAddSchedItem(){
+  const t=document.getElementById('newSchedTitle').value.trim();if(!t){alert('Digite o nome da matéria.');return;}
+  const s=document.getElementById('newSchedSub').value.trim()||'—';
+  const cat=document.getElementById('newSchedCat').value;const cm=CAT_MAP[cat];
+  const item={id:'c-'+Date.now(),dot:cm.dot,title:t,sub:s,badge:cm.badge,badgeCls:cm.badgeCls};
+  const l=document.querySelector(`.items-list[data-day="${_pendingDay}"]`);
+  if(l){l.insertAdjacentHTML('beforeend',buildItemHTML(item));initSortable();saveSchedule();}
+  closeAddSchedModal();
+}
+function getScheduleForDay(dayId){
+  const raw=localStorage.getItem('schedule_v3');const map=raw?JSON.parse(raw):{};
+  const def=DEFAULT_SCHEDULE.find(d=>d.id===dayId);
+  return map[dayId]!==undefined?map[dayId]:(def?def.items:[]);
+}
+
+/* ══════════════════════════════════════════
+   CONTEXT MENU
+══════════════════════════════════════════ */
+let _ctxEl=null,_ctxType=null;
+const ctxMenu=document.getElementById('ctxMenu');
+document.addEventListener('contextmenu',e=>{
+  const schedItem=e.target.closest('.sched-item');
+  if(schedItem){e.preventDefault();_ctxEl=schedItem;_ctxType='sched';document.getElementById('ctxTitle').textContent=schedItem.dataset.title;document.getElementById('ctxAction').textContent='🗑 Excluir matéria';showCtx(e.clientX,e.clientY);return;}
+  const hgKey=e.target.closest('.hangul-key');
+  if(hgKey){e.preventDefault();_ctxEl=hgKey;_ctxType='hangul';document.getElementById('ctxTitle').textContent=hgKey.dataset.char+' ('+hgKey.dataset.rom+')';document.getElementById('ctxAction').textContent='🗑 Excluir esta letra';showCtx(e.clientX,e.clientY);return;}
+  hideCtx();
+});
+function showCtx(x,y){ctxMenu.classList.remove('hidden');const mx=Math.min(x,window.innerWidth-180),my=Math.min(y,window.innerHeight-75);ctxMenu.style.left=mx+'px';ctxMenu.style.top=my+'px';}
+document.addEventListener('click',e=>{if(!ctxMenu.contains(e.target))hideCtx();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideCtx();});
+function hideCtx(){ctxMenu.classList.add('hidden');}
+function handleCtxAction(){
+  if(_ctxType==='sched'){if(!_ctxEl)return;if(confirm(`Excluir "${_ctxEl.dataset.title}"?`)){_ctxEl.remove();saveSchedule();}}
+  else if(_ctxType==='hangul'){if(!_ctxEl)return;deleteHangulKey(_ctxEl);}
+  hideCtx();
+}
+
+/* ══════════════════════════════════════════
+   HABIT TRACKER
+══════════════════════════════════════════ */
+const DEF_MATS=['Português Básico (BB)','Português Avançado (BB)','Informática (BB)','Matemática (BB)','Mat. Financeira (BB)','Conhecimentos Bancários','Atualidades','Mercado, Vendas e Neg.','Língua Inglesa (BB)','Inglês 🇺🇸 (Prof. Vergara)','Inglês 🇺🇸 (Prof. Gabriela)','Japonês 🇯🇵','Coreano 🇰🇷','Proj. Matemática 📐','Ed. Tecnologia 🎓'];
+function getMats(){return[...DEF_MATS,...JSON.parse(localStorage.getItem('materias_extra')||'[]')];}
+function aulaBlock(mi,ai,d){d=d||{};const first=ai===0;return `<div class="aula-block" id="ab-${mi}-${ai}"><div class="aula-header"><span class="aula-num">Aula ${ai+1}</span><input type="checkbox" class="aula-chk" id="chk-${mi}-${ai}" onchange="onAulaCheck(${mi},${ai},this)" ${d.feito?'checked':''}><input type="text" class="aula-input" id="txt-${mi}-${ai}" placeholder="O que aprendi..." value="${esc(d.texto||'')}"> ${!first?`<button class="aula-rm" onclick="rmAula(${mi},${ai})">✕</button>`:''}</div><div class="aula-rev"><label><input type="checkbox" id="r7-${mi}-${ai}" ${d.r7?'checked':''}> R7</label><label><input type="checkbox" id="r15-${mi}-${ai}" ${d.r15?'checked':''}> R15</label></div></div>`;}
+function onAulaCheck(mi,ai,chk){if(chk.checked){addXP(10);markStudyToday();fireConfetti();}}
+function renderTracker(saved){
+  const mats=getMats();
+  document.getElementById('trackerBody').innerHTML=mats.map((mat,i)=>{
+    const d=saved&&saved[i]?saved[i]:null;const aulas=(d&&d.aulas&&d.aulas.length)?d.aulas:[{}];const isCustom=i>=DEF_MATS.length;
+    return `<tr data-mi="${i}"><td style="vertical-align:top;padding-top:12px"><div class="mat-name-cell"><strong style="font-size:.8rem">${mat}</strong>${isCustom?`<button class="btn-rm-mat" onclick="rmMat(${i})">✕</button>`:''}</div></td><td><div id="ac-${i}">${aulas.map((a,ai)=>aulaBlock(i,ai,a)).join('')}</div><button class="btn-add-aula" onclick="addAula(${i})">＋ nova aula</button></td></tr>`;
+  }).join('');
+}
+function addAula(mi){const c=document.getElementById(`ac-${mi}`);const n=c.querySelectorAll('.aula-block').length;c.insertAdjacentHTML('beforeend',aulaBlock(mi,n,{}));}
+function rmAula(mi,ai){
+  const el=document.getElementById(`ab-${mi}-${ai}`);if(el)el.remove();
+  const c=document.getElementById(`ac-${mi}`);
+  c.querySelectorAll('.aula-block').forEach((b,i)=>{
+    b.id=`ab-${mi}-${i}`;b.querySelector('.aula-num').textContent=`Aula ${i+1}`;
+    const chk=b.querySelector('.aula-chk');if(chk){chk.id=`chk-${mi}-${i}`;chk.setAttribute('onchange',`onAulaCheck(${mi},${i},this)`);}
+    const txt=b.querySelector('.aula-input');if(txt)txt.id=`txt-${mi}-${i}`;
+    const r7=b.querySelector('[id^="r7-"]');if(r7)r7.id=`r7-${mi}-${i}`;
+    const r15=b.querySelector('[id^="r15-"]');if(r15)r15.id=`r15-${mi}-${i}`;
+    const rmBtn=b.querySelector('.aula-rm');if(rmBtn)rmBtn.setAttribute('onclick',`rmAula(${mi},${i})`);
+    if(i===0&&rmBtn)rmBtn.remove();
+  });
+}
+function getRow(i){const c=document.getElementById(`ac-${i}`);if(!c)return{aulas:[{}]};const aulas=[];c.querySelectorAll('.aula-block').forEach((_,ai)=>{aulas.push({feito:document.getElementById(`chk-${i}-${ai}`)?.checked||false,texto:document.getElementById(`txt-${i}-${ai}`)?.value||'',r7:document.getElementById(`r7-${i}-${ai}`)?.checked||false,r15:document.getElementById(`r15-${i}-${ai}`)?.checked||false});});return{aulas};}
+function saveTrackerData(){const w=document.getElementById('weekSelector').value;localStorage.setItem('tracker_w'+w,JSON.stringify(getMats().map((_,i)=>getRow(i))));const m=document.getElementById('saveMsg');m.classList.add('show');clearTimeout(m._t);m._t=setTimeout(()=>m.classList.remove('show'),2200);analyzeSuggestions();}
+function loadTrackerData(){const w=document.getElementById('weekSelector').value;renderTracker(JSON.parse(localStorage.getItem('tracker_w'+w)||'null'));}
+function openAddMateriaModal(){document.getElementById('newMatName').value='';document.getElementById('addMateriaModal').classList.remove('hidden');setTimeout(()=>document.getElementById('newMatName').focus(),100);}
+function closeAddMateriaModal(){document.getElementById('addMateriaModal').classList.add('hidden');}
+function confirmAddMateria(){const n=document.getElementById('newMatName').value.trim();if(!n){alert('Digite o nome da matéria.');return;}const e=JSON.parse(localStorage.getItem('materias_extra')||'[]');e.push(n);localStorage.setItem('materias_extra',JSON.stringify(e));closeAddMateriaModal();loadTrackerData();}
+function rmMat(idx){const m=getMats()[idx];if(!confirm(`Remover "${m}"?`))return;const e=JSON.parse(localStorage.getItem('materias_extra')||'[]');const ei=idx-DEF_MATS.length;if(ei>=0){e.splice(ei,1);localStorage.setItem('materias_extra',JSON.stringify(e));}loadTrackerData();}
+
+/* ══════════════════════════════════════════
+   KANJIS
+══════════════════════════════════════════ */
+const BASE_KANJIS=[{char:'一',sig:'Um',on:'イチ・イツ',onR:'Ichi/Itsu',kun:'ひと・つ',kunR:'hito/-tsu',jlpt:'N5'},{char:'二',sig:'Dois',on:'ニ',onR:'Ni',kun:'ふた・つ',kunR:'futa/-tsu',jlpt:'N5'},{char:'三',sig:'Três',on:'サン',onR:'San',kun:'みっ・つ',kunR:'mit/-tsu',jlpt:'N5'},{char:'四',sig:'Quatro',on:'シ',onR:'Shi',kun:'よっ・つ',kunR:'yot/-tsu',jlpt:'N5'},{char:'五',sig:'Cinco',on:'ゴ',onR:'Go',kun:'いつ・つ',kunR:'itsu/-tsu',jlpt:'N5'},{char:'六',sig:'Seis',on:'ロク',onR:'Roku',kun:'むっ・つ',kunR:'mut/-tsu',jlpt:'N5'},{char:'七',sig:'Sete',on:'シチ',onR:'Shichi',kun:'なな・つ',kunR:'nana/-tsu',jlpt:'N5'},{char:'八',sig:'Oito',on:'ハチ',onR:'Hachi',kun:'やっ・つ',kunR:'yat/-tsu',jlpt:'N5'},{char:'九',sig:'Nove',on:'キュウ・ク',onR:'Kyuu/Ku',kun:'ここの・つ',kunR:'kokono/-tsu',jlpt:'N5'},{char:'十',sig:'Dez',on:'ジュウ',onR:'Juu',kun:'とお',kunR:'too',jlpt:'N5'},{char:'百',sig:'Cem',on:'ヒャク',onR:'Hyaku',kun:'—',kunR:'—',jlpt:'N5'},{char:'千',sig:'Mil',on:'セン',onR:'Sen',kun:'ち',kunR:'chi',jlpt:'N5'},{char:'万',sig:'Dez mil',on:'マン・バン',onR:'Man/Ban',kun:'よろず',kunR:'yorozu',jlpt:'N5'},{char:'円',sig:'Iene/Círculo',on:'エン',onR:'En',kun:'まる・い',kunR:'maru-i',jlpt:'N5'},{char:'時',sig:'Hora/Tempo',on:'ジ',onR:'Ji',kun:'とき',kunR:'toki',jlpt:'N5'},{char:'分',sig:'Minuto/Parte',on:'フン・ブン',onR:'Fun/Bun',kun:'わ・かる',kunR:'wa-karu',jlpt:'N5'},{char:'年',sig:'Ano',on:'ネン',onR:'Nen',kun:'とし',kunR:'toshi',jlpt:'N5'},{char:'月',sig:'Mês/Lua',on:'ゲツ・ガツ',onR:'Getsu/Gatsu',kun:'つき',kunR:'tsuki',jlpt:'N5'},{char:'日',sig:'Dia/Sol/Japão',on:'ニチ・ジツ',onR:'Nichi/Jitsu',kun:'ひ・か',kunR:'hi/ka',jlpt:'N5'},{char:'火',sig:'Fogo/Terça',on:'カ',onR:'Ka',kun:'ひ',kunR:'hi',jlpt:'N5'},{char:'水',sig:'Água/Quarta',on:'スイ',onR:'Sui',kun:'みず',kunR:'mizu',jlpt:'N5'},{char:'木',sig:'Árvore/Quinta',on:'モク・ボク',onR:'Moku/Boku',kun:'き',kunR:'ki',jlpt:'N5'},{char:'金',sig:'Ouro/Dinheiro/Sexta',on:'キン・コン',onR:'Kin/Kon',kun:'かね',kunR:'kane',jlpt:'N5'},{char:'土',sig:'Terra/Sábado',on:'ド・ト',onR:'Do/To',kun:'つち',kunR:'tsuchi',jlpt:'N5'},{char:'曜',sig:'Dia da semana',on:'ヨウ',onR:'You',kun:'—',kunR:'—',jlpt:'N4'}];
+function getKanjis(){return[...BASE_KANJIS,...JSON.parse(localStorage.getItem('kanjis_extra')||'[]')];}
+let kanjiIdx=0;
+function renderKanji(){const k=getKanjis()[kanjiIdx];document.getElementById('kanjiChar').textContent=k.char;document.getElementById('kanjiSig').textContent=k.sig;document.getElementById('kanjiOn').textContent=k.on;document.getElementById('kanjiOnR').textContent=k.onR;document.getElementById('kanjiKun').textContent=k.kun;document.getElementById('kanjiKunR').textContent=k.kunR;document.getElementById('kanjiJlpt').textContent=k.jlpt;document.getElementById('kanjiCounter').textContent=`${kanjiIdx+1} / ${getKanjis().length}`;}
+function nextKanji(){kanjiIdx=(kanjiIdx+1)%getKanjis().length;renderKanji();}
+function prevKanji(){kanjiIdx=(kanjiIdx-1+getKanjis().length)%getKanjis().length;renderKanji();}
+function randomKanji(){kanjiIdx=Math.floor(Math.random()*getKanjis().length);renderKanji();}
+function openKanjiModal(){document.getElementById('kanjiModal').classList.remove('hidden');}
+function closeKanjiModal(){document.getElementById('kanjiModal').classList.add('hidden');['mChar','mSig','mOn','mOnR','mKun','mKunR','mJlpt'].forEach(id=>document.getElementById(id).value='');}
+function saveNewKanji(){
+  const c=document.getElementById('mChar').value.trim(),s=document.getElementById('mSig').value.trim();
+  if(!c||!s){alert('Preencha ao menos o Kanji e o Significado.');return;}
+  const e=JSON.parse(localStorage.getItem('kanjis_extra')||'[]');
+  e.push({char:c,sig:s,on:document.getElementById('mOn').value||'—',onR:document.getElementById('mOnR').value||'—',kun:document.getElementById('mKun').value||'—',kunR:document.getElementById('mKunR').value||'—',jlpt:document.getElementById('mJlpt').value||'—'});
+  localStorage.setItem('kanjis_extra',JSON.stringify(e));kanjiIdx=getKanjis().length-1;renderKanji();closeKanjiModal();
+}
+document.getElementById('kanjiModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeKanjiModal();});
+
+/* ══════════════════════════════════════════
+   KANA — COM ÁUDIO 🔊
+══════════════════════════════════════════ */
+const HIRAGANA=[{row:'∅',c:[['あ','a'],['い','i'],['う','u'],['え','e'],['お','o']]},{row:'K',c:[['か','ka'],['き','ki'],['く','ku'],['け','ke'],['こ','ko']]},{row:'S',c:[['さ','sa'],['し','shi'],['す','su'],['せ','se'],['そ','so']]},{row:'T',c:[['た','ta'],['ち','chi'],['つ','tsu'],['て','te'],['と','to']]},{row:'N',c:[['な','na'],['に','ni'],['ぬ','nu'],['ね','ne'],['の','no']]},{row:'H',c:[['は','ha'],['ひ','hi'],['ふ','fu'],['へ','he'],['ほ','ho']]},{row:'M',c:[['ま','ma'],['み','mi'],['む','mu'],['め','me'],['も','mo']]},{row:'Y',c:[['や','ya'],['—',''],['ゆ','yu'],['—',''],['よ','yo']]},{row:'R',c:[['ら','ra'],['り','ri'],['る','ru'],['れ','re'],['ろ','ro']]},{row:'W',c:[['わ','wa'],['—',''],['—',''],['—',''],['を','wo']]},{row:'N',c:[['ん','n'],['—',''],['—',''],['—',''],['—','']]}];
+const KATAKANA=[{row:'∅',c:[['ア','a'],['イ','i'],['ウ','u'],['エ','e'],['オ','o']]},{row:'K',c:[['カ','ka'],['キ','ki'],['ク','ku'],['ケ','ke'],['コ','ko']]},{row:'S',c:[['サ','sa'],['シ','shi'],['ス','su'],['セ','se'],['ソ','so']]},{row:'T',c:[['タ','ta'],['チ','chi'],['ツ','tsu'],['テ','te'],['ト','to']]},{row:'N',c:[['ナ','na'],['ニ','ni'],['ヌ','nu'],['ネ','ne'],['ノ','no']]},{row:'H',c:[['ハ','ha'],['ヒ','hi'],['フ','fu'],['ヘ','he'],['ホ','ho']]},{row:'M',c:[['マ','ma'],['ミ','mi'],['ム','mu'],['メ','me'],['モ','mo']]},{row:'Y',c:[['ヤ','ya'],['—',''],['ユ','yu'],['—',''],['ヨ','yo']]},{row:'R',c:[['ラ','ra'],['リ','ri'],['ル','ru'],['レ','re'],['ロ','ro']]},{row:'W',c:[['ワ','wa'],['—',''],['—',''],['—',''],['ヲ','wo']]},{row:'N',c:[['ン','n'],['—',''],['—',''],['—',''],['—','']]}];
+
+let jpVoice=null;
+function detectJpVoice(){
+  if(!('speechSynthesis' in window))return;
+  const tryLoad=()=>{const vs=speechSynthesis.getVoices();jpVoice=vs.find(v=>v.lang.startsWith('ja'))||null;};
+  speechSynthesis.onvoiceschanged=tryLoad;tryLoad();
+}
+function speakJP(text,rate){
+  if(!text||!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='ja-JP';u.rate=rate||0.75;u.pitch=1.1;
+  if(jpVoice)u.voice=jpVoice;
+  speechSynthesis.speak(u);
+}
+
+function buildKanaTable(data){
+  const tb=document.getElementById('kanaBody');tb.innerHTML='';
+  data.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--border2);font-size:.6rem;font-weight:700;cursor:default">${r.row}</td>`+
+    r.c.map(([c,ro])=>{
+      if(c==='—')return`<td class="kana-empty">—</td>`;
+      return`<td onclick="kanaClick('${c}','${ro}',this)" title="🔊 ${c} (${ro})"><span class="kana-char">${c}</span><span class="kana-roma">${ro}</span></td>`;
+    }).join('');
+    tb.appendChild(tr);
+  });
+}
+
+function kanaClick(char,roma,cell){
+  // Play sound
+  speakJP(char);
+  // Visual feedback
+  cell.classList.add('playing');
+  setTimeout(()=>cell.classList.remove('playing'),400);
+}
+
+function switchKana(m){
+  document.getElementById('btnHira').classList.toggle('active',m==='hira');
+  document.getElementById('btnKata').classList.toggle('active',m==='kata');
+  buildKanaTable(m==='hira'?HIRAGANA:KATAKANA);
+}
+
+/* ══════════════════════════════════════════
+   TRADUTOR JAPONÊS (Claude API)
+══════════════════════════════════════════ */
+let transDir='pt-jp';
+function setTransDir(dir){
+  transDir=dir;
+  ['dirPtJp','dirJpPt','dirJpEn'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  const map={'pt-jp':'dirPtJp','jp-pt':'dirJpPt','jp-en':'dirJpEn'};
+  document.getElementById(map[dir]).classList.add('active');
+  const ph={'pt-jp':'Ex: Olá, como vai você?','jp-pt':'例: こんにちは、元気ですか？','jp-en':'例: こんにちは、元気ですか？'};
+  document.getElementById('jpTransInput').placeholder=ph[dir];
+  document.getElementById('jpTransText').textContent='A tradução aparecerá aqui...';
+  document.getElementById('jpTransText').style.color='var(--muted)';
+  document.getElementById('jpTransText').style.fontSize='.75rem';
+}
+
+function getApiKey(){return localStorage.getItem('claude_api_key')||'';}
+function openApiKeyPrompt(){
+  const cur=getApiKey();
+  const k=prompt('Cole sua Anthropic API Key (sk-ant-...):\n\nEla será salva só no seu navegador (localStorage).',cur);
+  if(k&&k.trim()){localStorage.setItem('claude_api_key',k.trim());alert('✅ API Key salva!');}
+}
+
+async function doTranslate(){
+  const inp=document.getElementById('jpTransInput').value.trim();
+  if(!inp)return;
+  const apiKey=getApiKey();
+  if(!apiKey){
+    if(confirm('Para usar o tradutor, configure sua API Key da Anthropic.\n\nConfigurar agora?')){openApiKeyPrompt();}
+    return;
+  }
+  const btn=document.getElementById('jpTransBtn');
+  const resultEl=document.getElementById('jpTransText');
+  btn.disabled=true;
+  resultEl.className='jp-trans-result-text loading';
+  resultEl.textContent='Traduzindo...';
+
+  const prompts={
+    'pt-jp':`Traduza o seguinte texto do Português para o Japonês. Responda APENAS com: 1) a tradução em japonês (kanji+kana), 2) a romanização (romaji) entre parênteses, 3) uma linha em branco, 4) uma explicação curtíssima das palavras-chave. Texto: "${inp}"`,
+    'jp-pt':`Traduza o seguinte texto do Japonês para o Português Brasileiro. Responda com: 1) a tradução em português, 2) uma linha em branco, 3) a leitura (romaji) do original, 4) significado literal de palavras-chave. Texto: "${inp}"`,
+    'jp-en':`Translate the following Japanese text to English. Respond with: 1) the English translation, 2) blank line, 3) romanization (romaji) of the original, 4) brief note on key vocabulary. Text: "${inp}"`
+  };
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-haiku-20240307',max_tokens:400,messages:[{role:'user',content:prompts[transDir]}]})
+    });
+    if(!resp.ok){
+      const err=await resp.json();
+      throw new Error(err.error?.message||'Erro na API');
+    }
+    const data=await resp.json();
+    const text=data.content?.[0]?.text||'Sem resposta.';
+    resultEl.className='jp-trans-result-text';
+    resultEl.style.color='';
+    resultEl.style.fontSize='';
+    // Format nicely
+    const lines=text.trim().split('\n');
+    resultEl.innerHTML=lines.map((l,i)=>i===0?`<span style="font-size:1.1rem;color:#a78bfa;font-family:'Noto Sans JP',serif">${l}</span>`:`<span style="font-size:.73rem;color:var(--muted2);display:block;margin-top:${l===''?'6':2}px">${l}</span>`).join('');
+    
+    // Add speak button for JP result if dir is pt-jp
+    if(transDir==='pt-jp'){
+      const speakBtn=document.createElement('button');
+      speakBtn.className='jp-trans-speak';speakBtn.textContent='🔊 Ouvir';
+      speakBtn.onclick=()=>speakJP(lines[0]);
+      document.getElementById('jpTransResult').appendChild(speakBtn);
+    }
+  } catch(e){
+    resultEl.className='jp-trans-result-text';
+    resultEl.style.color='#f87171';
+    resultEl.style.fontSize='.8rem';
+    resultEl.textContent='Erro: '+(e.message||'Verifique sua API Key.');
+  } finally{
+    btn.disabled=false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('jpTransInput');
+  if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doTranslate();}});
+});
+
+/* ══════════════════════════════════════════
+   HANGUL
+══════════════════════════════════════════ */
+const DEFAULT_CONS=[{char:'ㄱ',rom:'g/k',ini:0},{char:'ㄴ',rom:'n',ini:2},{char:'ㄷ',rom:'d/t',ini:3},{char:'ㄹ',rom:'r/l',ini:5},{char:'ㅁ',rom:'m',ini:6},{char:'ㅂ',rom:'b/p',ini:7},{char:'ㅅ',rom:'s',ini:9},{char:'ㅇ',rom:'—',ini:11},{char:'ㅈ',rom:'j',ini:12},{char:'ㅊ',rom:'ch',ini:14},{char:'ㅋ',rom:'k',ini:15},{char:'ㅌ',rom:'t',ini:16},{char:'ㅍ',rom:'p',ini:17},{char:'ㅎ',rom:'h',ini:18}];
+const DEFAULT_VOGS=[{char:'ㅏ',rom:'a',med:0},{char:'ㅑ',rom:'ya',med:1},{char:'ㅓ',rom:'eo',med:2},{char:'ㅕ',rom:'yeo',med:3},{char:'ㅗ',rom:'o',med:4},{char:'ㅛ',rom:'yo',med:5},{char:'ㅜ',rom:'u',med:6},{char:'ㅠ',rom:'yu',med:7},{char:'ㅡ',rom:'eu',med:8},{char:'ㅣ',rom:'i',med:9}];
+function getHgCons(){return JSON.parse(localStorage.getItem('hg_cons')||JSON.stringify(DEFAULT_CONS));}
+function getHgVogs(){return JSON.parse(localStorage.getItem('hg_vogs')||JSON.stringify(DEFAULT_VOGS));}
+function saveHgCons(c){localStorage.setItem('hg_cons',JSON.stringify(c));}
+function saveHgVogs(v){localStorage.setItem('hg_vogs',JSON.stringify(v));}
+let sC=null,sV=null,curSyl='',krVoice=null;
+function detectKrVoice(){
+  if(!('speechSynthesis' in window))return;
+  const tryLoad=()=>{const vs=speechSynthesis.getVoices();krVoice=vs.find(v=>v.lang.startsWith('ko'))||null;const st=document.getElementById('speechStatus');if(st)st.textContent=krVoice?`🔊 Voz: ${krVoice.name}`:(vs.length?'':'');};
+  speechSynthesis.onvoiceschanged=tryLoad;tryLoad();
+}
+function speakText(txt,rate){
+  if(!txt||!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(txt);u.lang='ko-KR';u.rate=rate||0.78;u.pitch=1.1;
+  if(krVoice)u.voice=krVoice;
+  speechSynthesis.speak(u);
+}
+function speakHangul(){speakText(curSyl);}
+function speakCustomHangul(){const txt=document.getElementById('hangulTestInput').value.trim();if(!txt){alert('Digite algo para ouvir.');return;}speakText(txt,0.75);}
+function buildHangulKeys(){
+  const cons=getHgCons(),vogs=getHgVogs();
+  const cEl=document.getElementById('hangulConsoantes');cEl.innerHTML='';cons.forEach((c,i)=>{cEl.appendChild(makeHgKey(c,'con',i));});
+  const vEl=document.getElementById('hangulVogais');vEl.innerHTML='';vogs.forEach((v,i)=>{vEl.appendChild(makeHgKey(v,'vog',i));});
+}
+function makeHgKey(letter,type,idx){
+  const b=document.createElement('button');b.className='hangul-key';b.dataset.type=type;b.dataset.idx=idx;b.dataset.char=letter.char;b.dataset.rom=letter.rom;b.dataset.ini=letter.ini||0;b.dataset.med=letter.med||0;
+  b.innerHTML=`<span class="hk-main">${letter.char}</span><span class="hk-rom">${letter.rom}</span>`;
+  b.onclick=()=>{
+    if(type==='con'){sC=idx;document.querySelectorAll('#hangulConsoantes .hangul-key').forEach(x=>x.classList.remove('selected'));}
+    else{sV=idx;document.querySelectorAll('#hangulVogais .hangul-key').forEach(x=>x.classList.remove('selected'));}
+    b.classList.add('selected');combineHG();
+  };
+  return b;
+}
+function combineHG(){
+  const btn=document.getElementById('hangulSpeakBtn');
+  if(sC===null||sV===null){document.getElementById('hangulSyllable').textContent='?';document.getElementById('hangulComboLabel').textContent='Selecione ① e ②';curSyl='';btn.disabled=true;return;}
+  const cons=getHgCons(),vogs=getHgVogs();const c=cons[sC],v=vogs[sV];
+  const ini=parseInt(c.ini)||0,med=parseInt(v.med)||0;
+  const code=0xAC00+(ini*21+med)*28;curSyl=String.fromCodePoint(code);
+  document.getElementById('hangulSyllable').textContent=curSyl;
+  document.getElementById('hangulComboLabel').textContent=`${c.char}(${c.rom}) + ${v.char}(${v.rom}) = ${curSyl}`;
+  btn.disabled=false;speakText(curSyl);
+}
+function clearHangul(){
+  sC=null;sV=null;curSyl='';
+  document.querySelectorAll('.hangul-key').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('hangulSyllable').textContent='?';document.getElementById('hangulComboLabel').textContent='Selecione ① e ②';
+  document.getElementById('hangulSpeakBtn').disabled=true;
+  if('speechSynthesis' in window)speechSynthesis.cancel();
+}
+function deleteHangulKey(el){
+  const type=el.dataset.type,idx=parseInt(el.dataset.idx);
+  if(type==='con'){const cons=getHgCons();cons.splice(idx,1);saveHgCons(cons);if(sC===idx)sC=null;}
+  else{const vogs=getHgVogs();vogs.splice(idx,1);saveHgVogs(vogs);if(sV===idx)sV=null;}
+  buildHangulKeys();clearHangul();
+}
+function openHangulAddModal(){document.getElementById('hgChar').value='';document.getElementById('hgRom').value='';document.getElementById('hgIdx').value='0';document.getElementById('hangulAddModal').classList.remove('hidden');setTimeout(()=>document.getElementById('hgChar').focus(),100);}
+function closeHangulAddModal(){document.getElementById('hangulAddModal').classList.add('hidden');}
+function confirmAddHangulLetter(){
+  const type=document.getElementById('hgType').value,ch=document.getElementById('hgChar').value.trim(),rom=document.getElementById('hgRom').value.trim(),idx=parseInt(document.getElementById('hgIdx').value)||0;
+  if(!ch||!rom){alert('Preencha o caractere e a romanização.');return;}
+  if(type==='con'){const cons=getHgCons();cons.push({char:ch,rom:rom,ini:idx});saveHgCons(cons);}
+  else{const vogs=getHgVogs();vogs.push({char:ch,rom:rom,med:idx});saveHgVogs(vogs);}
+  buildHangulKeys();closeHangulAddModal();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('hangulTestInput');
+  if(inp)inp.addEventListener('input',()=>{document.getElementById('hangulTestPreview').textContent=inp.value||'—';});
+});
+
+/* ══════════════════════════════════════════
+   CALENDAR — TODAS AS MATÉRIAS
+══════════════════════════════════════════ */
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+const MONTH_NAMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DAY_NAMES_SHORT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function renderCalendar(){
+  const today=new Date();const todayY=today.getFullYear(),todayM=today.getMonth(),todayD=today.getDate();
+  document.getElementById('calMonthTitle').textContent=`${MONTH_NAMES[calMonth]} ${calYear}`;
+  const g=document.getElementById('calGrid');g.innerHTML='';
+  DAY_NAMES_SHORT.forEach(d=>{const el=document.createElement('div');el.className='cal-dayname';el.textContent=d;g.appendChild(el);});
+  const firstDOW=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const studied=getStudiedDays();const streakDays=getStreakDays();
+  for(let i=0;i<firstDOW;i++){const el=document.createElement('div');el.className='cal-cell empty';g.appendChild(el);}
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(calYear,calMonth,d).getDay();
+    const dayId=DOW_TO_ID[dow];
+    const schedItems=getScheduleForDay(dayId);
+    const el=document.createElement('div');el.className='cal-cell';
+    const isToday=(calYear===todayY&&calMonth===todayM&&d===todayD);
+    if(isToday)el.classList.add('today');
+    if(streakDays.includes(dateStr))el.classList.add('streak-day');
+    else if(studied.includes(dateStr))el.classList.add('studied');
+    const numEl=document.createElement('div');numEl.className='cal-cell-num';numEl.textContent=d;el.appendChild(numEl);
+    const itemsEl=document.createElement('div');itemsEl.className='cal-items';
+    // SHOW ALL ITEMS — no limit!
+    schedItems.forEach(item=>{
+      const chip=document.createElement('div');
+      const chipCls=DOT_TO_CHIP[item.dot]||'chip-custom';
+      chip.className=`cal-item-chip ${chipCls}`;
+      chip.textContent=item.title.replace(/[\u{1F1E0}-\u{1F1FF}]{2}/gu,'').replace(/🇺🇸|🇯🇵|🇰🇷|🎓|📐/g,'').trim();
+      chip.title=item.title;
+      itemsEl.appendChild(chip);
+    });
+    el.appendChild(itemsEl);
+    g.appendChild(el);
+  }
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+/* ══════════════════════════════════════════
+   FRASES
+══════════════════════════════════════════ */
+const FRASES=[{t:"Dream, work hard and enjoy every day.",a:"— BTS · Jin"},{t:"If you can't fly, run. If you can't run, walk.",a:"— BTS · RM"},{t:"Love yourself, speak yourself.",a:"— BTS · RM (ONU, 2018)"},{t:"어제의 나, 오늘의 나, 내일의 나.",a:"— BTS"},{t:"Life goes on. Even if you fall, try again.",a:"— BTS · Suga"},{t:"You were born to be real, not to be perfect.",a:"— BTS"},{t:"A matemática é a linguagem na qual Deus escreveu o universo.",a:"— Galileu Galilei"},{t:"A persistência é o caminho do êxito.",a:"— Charles Chaplin"},{t:"O sucesso é 1% inspiração e 99% transpiração.",a:"— Thomas Edison"},{t:"勉強は自分への最高の投資です.",a:"— Provérbio Japonês"},{t:"노력은 배신하지 않는다 — O esforço não trai.",a:"— Ditado Coreano"},{t:"七転び八起き — Caia sete vezes, levante oito.",a:"— Provérbio Japonês"},{t:"O investimento em conhecimento paga os melhores juros.",a:"— Benjamin Franklin"},{t:"A jornada de mil milhas começa com um único passo.",a:"— Lao Tsé"},{t:"Discipline is choosing between what you want now and what you want most.",a:"— Augusta F. Kantra"}];
+let lastFrase=-1;
+function loadFrase(){let i;do{i=Math.floor(Math.random()*FRASES.length);}while(i===lastFrase&&FRASES.length>1);lastFrase=i;document.getElementById('fraseText').textContent=FRASES[i].t;document.getElementById('fraseAuthor').textContent=FRASES[i].a;}
+
+/* ══════════════════════════════════════════
+   STICKY
+══════════════════════════════════════════ */
+let stickyOpen=true;
+function toggleSticky(){stickyOpen=!stickyOpen;document.getElementById('stickyBody').classList.toggle('collapsed',!stickyOpen);document.getElementById('stickyToggleBtn').textContent=stickyOpen?'▼':'▲';}
+function clearSticky(){if(confirm('Limpar anotações?')){document.getElementById('stickyText').value='';localStorage.removeItem('sticky_notes');}}
+function initSticky(){
+  document.getElementById('stickyText').value=localStorage.getItem('sticky_notes')||'';
+  document.getElementById('stickyText').addEventListener('input',()=>{
+    localStorage.setItem('sticky_notes',document.getElementById('stickyText').value);
+    const s=document.getElementById('stickySaved');s.classList.add('show');clearTimeout(s._t);s._t=setTimeout(()=>s.classList.remove('show'),1400);
+  });
+}
+
+/* ══════════════════════════════════════════
+   NAV
+══════════════════════════════════════════ */
+function showPage(id){
+  ['cronograma','tracker','idiomas','calendario'].forEach(p=>{document.getElementById('view-'+p).classList.add('hidden');document.getElementById('btn-'+p).classList.remove('active');});
+  document.getElementById('view-'+id).classList.remove('hidden');
+  document.getElementById('btn-'+id).classList.add('active');
+  if(id==='calendario')renderCalendar();
+  if(id==='cronograma')analyzeSuggestions();
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+window.onload=()=>{
+  renderProfile();renderGameBar();renderStreak();
+  renderSchedule(loadSchedule());loadTrackerData();initSticky();loadFrase();
+  buildKanaTable(HIRAGANA);buildHangulKeys();renderKanji();
+  restoreYT();detectKrVoice();detectJpVoice();
+  analyzeSuggestions();
+};
+</script>
+</body>
+</html>
