@@ -1300,81 +1300,86 @@ function switchKana(m){
   buildKanaTable(m==='hira'?HIRAGANA:KATAKANA);
 }
 
-/* ══════════════════════════════════════════
-   TRADUTOR JAPONÊS (Claude API)
-══════════════════════════════════════════ */
 let transDir='pt-jp';
+const LANG_CODES={
+  'pt-jp':{ from:'pt-BR', to:'ja' },
+  'jp-pt':{ from:'ja',    to:'pt-BR' },
+  'jp-en':{ from:'ja',    to:'en-GB' }
+};
+
 function setTransDir(dir){
   transDir=dir;
   ['dirPtJp','dirJpPt','dirJpEn'].forEach(id=>document.getElementById(id).classList.remove('active'));
   const map={'pt-jp':'dirPtJp','jp-pt':'dirJpPt','jp-en':'dirJpEn'};
   document.getElementById(map[dir]).classList.add('active');
-  const ph={'pt-jp':'Ex: Olá, como vai você?','jp-pt':'例: こんにちは、元気ですか？','jp-en':'例: こんにちは、元気ですか？'};
+  const ph={
+    'pt-jp':'Ex: Olá, como vai você?',
+    'jp-pt':'例: こんにちは、元気ですか？',
+    'jp-en':'例: こんにちは、元気ですか？'
+  };
   document.getElementById('jpTransInput').placeholder=ph[dir];
-  document.getElementById('jpTransText').textContent='A tradução aparecerá aqui...';
-  document.getElementById('jpTransText').style.color='var(--muted)';
-  document.getElementById('jpTransText').style.fontSize='.75rem';
-}
-
-function getApiKey(){return localStorage.getItem('claude_api_key')||'';}
-function openApiKeyPrompt(){
-  const cur=getApiKey();
-  const k=prompt('Cole sua Anthropic API Key (sk-ant-...):\n\nEla será salva só no seu navegador (localStorage).',cur);
-  if(k&&k.trim()){localStorage.setItem('claude_api_key',k.trim());alert('✅ API Key salva!');}
+  const rt=document.getElementById('jpTransText');
+  rt.textContent='A tradução aparecerá aqui...';
+  rt.style.color='var(--muted)';
+  rt.style.fontSize='.75rem';
+  rt.style.fontFamily='';
+  const old=document.getElementById('jpTransResult').querySelector('.jp-trans-speak');
+  if(old)old.remove();
 }
 
 async function doTranslate(){
   const inp=document.getElementById('jpTransInput').value.trim();
   if(!inp)return;
-  const apiKey=getApiKey();
-  if(!apiKey){
-    if(confirm('Para usar o tradutor, configure sua API Key da Anthropic.\n\nConfigurar agora?')){openApiKeyPrompt();}
-    return;
-  }
   const btn=document.getElementById('jpTransBtn');
   const resultEl=document.getElementById('jpTransText');
+  const resultBox=document.getElementById('jpTransResult');
+  const oldSpeak=resultBox.querySelector('.jp-trans-speak');
+  if(oldSpeak)oldSpeak.remove();
   btn.disabled=true;
   resultEl.className='jp-trans-result-text loading';
   resultEl.textContent='Traduzindo...';
-
-  const prompts={
-    'pt-jp':`Traduza o seguinte texto do Português para o Japonês. Responda APENAS com: 1) a tradução em japonês (kanji+kana), 2) a romanização (romaji) entre parênteses, 3) uma linha em branco, 4) uma explicação curtíssima das palavras-chave. Texto: "${inp}"`,
-    'jp-pt':`Traduza o seguinte texto do Japonês para o Português Brasileiro. Responda com: 1) a tradução em português, 2) uma linha em branco, 3) a leitura (romaji) do original, 4) significado literal de palavras-chave. Texto: "${inp}"`,
-    'jp-en':`Translate the following Japanese text to English. Respond with: 1) the English translation, 2) blank line, 3) romanization (romaji) of the original, 4) brief note on key vocabulary. Text: "${inp}"`
-  };
-
+  const {from,to}=LANG_CODES[transDir];
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-haiku-20240307',max_tokens:400,messages:[{role:'user',content:prompts[transDir]}]})
-    });
-    if(!resp.ok){
-      const err=await resp.json();
-      throw new Error(err.error?.message||'Erro na API');
-    }
+    const url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(inp)}&langpair=${from}|${to}`;
+    const resp=await fetch(url);
+    if(!resp.ok) throw new Error('Falha na conexão.');
     const data=await resp.json();
-    const text=data.content?.[0]?.text||'Sem resposta.';
+    if(data.responseStatus!==200&&data.responseStatus!=='200') throw new Error(data.responseDetails||'Erro na tradução.');
+    const translated=data.responseData?.translatedText||'';
+    if(!translated) throw new Error('Resposta vazia.');
+    if(translated.toUpperCase().includes('MYMEMORY WARNING')) throw new Error('Limite diário atingido. Tente amanhã.');
     resultEl.className='jp-trans-result-text';
-    resultEl.style.color='';
-    resultEl.style.fontSize='';
-    const lines=text.trim().split('\n');
-    resultEl.innerHTML=lines.map((l,i)=>i===0?`<span style="font-size:1.1rem;color:#a78bfa;font-family:'Noto Sans JP',serif">${l}</span>`:`<span style="font-size:.73rem;color:var(--muted2);display:block;margin-top:${l===''?'6':2}px">${l}</span>`).join('');
-    if(transDir==='pt-jp'){
-      const speakBtn=document.createElement('button');
-      speakBtn.className='jp-trans-speak';speakBtn.textContent='🔊 Ouvir';
-      speakBtn.onclick=()=>speakJP(lines[0]);
-      document.getElementById('jpTransResult').appendChild(speakBtn);
+    resultEl.style.fontFamily="'Noto Sans JP','Noto Sans KR','Segoe UI',sans-serif";
+    let html=`<span style="font-size:1.15rem;color:#a78bfa;display:block;margin-bottom:6px">${translated}</span>`;
+    const extras=(data.matches||[]).filter(m=>m.translation&&m.translation!==translated&&m.quality>50).slice(0,2);
+    if(extras.length){
+      html+=`<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:5px"><span style="font-size:.55rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted2)">Alternativas</span>`;
+      extras.forEach(m=>{html+=`<div style="font-size:.72rem;color:var(--muted2);margin-top:3px">· ${m.translation}</div>`;});
+      html+=`</div>`;
     }
-  } catch(e){
+    resultEl.innerHTML=html;
+    const speakBtn=document.createElement('button');
+    speakBtn.className='jp-trans-speak';
+    speakBtn.textContent='🔊 Ouvir';
+    const speakLang=transDir==='pt-jp'?'ja-JP':(transDir==='jp-en'?'en-US':'pt-BR');
+    speakBtn.onclick=()=>{
+      if(!('speechSynthesis' in window))return;
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(translated);
+      u.lang=speakLang;u.rate=0.8;
+      speechSynthesis.speak(u);
+    };
+    resultBox.appendChild(speakBtn);
+  }catch(e){
     resultEl.className='jp-trans-result-text';
     resultEl.style.color='#f87171';
     resultEl.style.fontSize='.8rem';
-    resultEl.textContent='Erro: '+(e.message||'Verifique sua API Key.');
-  } finally{
+    resultEl.style.fontFamily='';
+    resultEl.textContent='⚠ '+(e.message||'Erro desconhecido.');
+  }finally{
     btn.disabled=false;
   }
-} 
+}
 
 document.addEventListener('DOMContentLoaded',()=>{
   const inp=document.getElementById('jpTransInput');
